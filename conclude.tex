@@ -1,0 +1,16 @@
+%auto-ignore
+\section{Conclusion}
+\label{sec:conclude}
+
+\This{} enforces PM safety invariants using mostly static checks.  It,
+therefore, eliminates memory management, pointers safety, and logging bugs and
+avoids the attendant costs of testing, debugging, fixing, and recovering from
+them.  It accomplishes this using Rust's type system to carefully control when
+the program can modify persistent and volatile state and when and where mutable
+references to persistent state can exist.  Our experience shows that \this{}
+relatively easy to use and our measurements show that \this{}'s performance is
+as good as or better than PMDK.
+
+% \section*{Acknowledgement}
+
+% This work was supported in part by Semiconductor Research Corporation (SRC).

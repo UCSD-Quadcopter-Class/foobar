@@ -1,0 +1,64 @@
+%auto-ignore
+\section{Related Work}
+\label{sec:related}
+
+
+\ignore{This section needs quite a bit of work. You need to think through what the key claims are for \this{}'s novelty and then layout how we differ from other systems.
+
+  Novelty:
+
+  1.  static checks for almost all PM safety properties.  Dynamic for the rest.  Some libraries provide some of this.
+
+  2.  PL and compiler support.  What other compiler-based PM tools are there?  what does the compiler do?  Note that we dont really have PM compiler support.  We just have a language that has lots of useful tool.  I think most of the compiler support is about inserting logging calls at the right place.  Interestingly, doing so in Rust would be non-idiomatic.   What about at the language level (I think its just NVM direct)?  How are we different better than them?
+
+  3. I'm not sure what pronto and pangolin have to do with this \this{}.  We dont address the challenges that pangolin fixes.   Pronto is a pm library, but that's where the relevence ends.
+  
+}
+
+Many projects have addressed the challenges of PM programming with
+software~\cite{pmdk,pronto,mnemosyne,nvheaps,atlas,oracle-nvm-direct,ido,usnap,cohen2018object,
+  autopersist,janus,libpm,lazypersist,pisces} and/or
+hardware~\cite{ogleari2018steal,Kiln,jeong2018efficient,xu2020hardware}.
+\reftab{tab:libs} highlights the checks some of these systems provide.  The systems not listed in table
+provide fewer checks (in some cases this is by design).
+
+In response, several projects provide
+testing~\cite{pmtest,oukid2016testing,xfdetector} and debugging
+tools~\cite{intel-pmemcheck,intel-inspector,lantz2014yat} targeting PM systems.
+While useful, these tools cannot provide safety guarantees and they rely on the
+programmer using them reliably and providing tests with good coverage.
+
+Among PM libraries, PMDK~\cite{pmdk} is the mostly widely used.  It provide dynamic checks to prevent inter-pool pointers in C and the C++ version provides static enforcement for atomicity, but otherwise the programmer is responsible for enforcing safety.
+
+NV-Heaps~\cite{nvheaps} and Mnemosyne~\cite{mnemosyne} rely on the C++ type system and a custom compiler, respectively, to statically avoid data races, atomicity violations, and pointers from PM into volatile memory.  Both systems go to some pains help avoid bugs, but the weakness of the C/C++ type systems make the guarantees they provide easy to circumvent.  NV-heaps addresses the problem of closed pools -- by not allowing pools to close.
+
+NVM Direct~\cite{oracle-nvm-direct} adds extensions to C/C++ via a custom compiler that gives the programmer detailed control over logging.  It is, by design, ``dangerously flexible - just like C''~\cite{personalbillbridge} to enable as many manual optimizations as possible, so it relies heavily on the programmer to enforce safety properties.  \This{} opts for safety over flexibility and does not require specific compiler support.
+
+%are two of the first PM libraries that offer a safe programming environment by enforcing some invariants statically. NV-Heaps also uses reference counting for garbage collection while it should be done manually in Mnemosyne. Although many of the invariants hold statically, checking that data is PM safe is a loophole in both of them. Also, the pool isolation check happens in the runtime, and the safety of V-to-NV pointers is not fully guaranteed.
+
+%Atlas~\cite{atlas} introduces failure-atomic sections (FASE) in which data consistency is guaranteed if the user correctly integrate it. Atlas uses a combination of compiler (static) and runtime (dynamic) support to ensure the recoverability of data within a FASE. Atlas provides means to implement a safe PM program, but does not enforce PM safety.
+
+
+% PMDK~\cite{pmdk}, NV-Heaps~\cite{nvheaps}, Mnemosyne~\cite{mnemosyne}, and
+% NVM-Direct~\cite{oracle-nvm-direct} provide libraries for using PM by
+% leveraging failure-atomic transactional memory techniques.  Unlike \this{},
+% these systems require the programmer to carefully include the provided APIs to
+% accurately access the PM. On the contrary, \this{} hides the PM programming
+% requirements underneath standard programming with smart pointers.
+
+% Atlas~\cite{atlas} and NVthreads~\cite{nvthreads} guarantee failure-atomicity
+% in multi-thread PM programming by using locks on persistent objects and memory
+% pages, respectively. Similarly, \this{} provides transaction wide \csym{Mutex}
+% to allow concurrent access to the shared persistent data.
+
+% Pronto~\cite{pronto} uses Asynchronous Semantic Logging to add
+% failure-atomicity to the volatile data structures with regards to PM
+% programming. Using Pronto, the user develops the data structure to records the
+% operation semantics in PM and replays it when a crash happens to reconstruct
+% the data structure back to the latest snapshot. Similar to other libraries,
+% failure to using it correctly and thoroughly may result in untraceable bugs.
+
+% Log-Structured NVMM~\cite{log-nvmm} suggests swapping the log and data to
+% reduce the write traffic and the number of barriers. \This{} also uses this
+% technique to save one of the two required flushing operation for updating a
+% persistent object.

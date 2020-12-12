@@ -1,0 +1,79 @@
+\documentclass[pageno]{jpaper}
+
+\newcommand{\asplossubmissionnumber}{171}
+
+\input{libpaper/texheader}
+
+\usepackage[normalem]{ulem}
+\microtypecontext{spacing=nonfrench}
+
+\usepackage{listings}
+\usepackage{listings-rust}
+\usepackage[scaled=0.85]{beramono}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{multirow}
+\usepackage{float}
+
+\newtheoremstyle{invar}% name of the style to be used
+  {0.1ex}% measure of space to leave above the theorem. E.g.: 3pt
+  {0.1ex}% measure of space to leave below the theorem. E.g.: 3pt
+  {\em}% name of font to use in the body of the theorem
+  {0pt}% measure of space to indent
+  {\bf}% name of head font
+  {:}% punctuation between head and body
+  { }% space after theorem head; " " = normal interword space
+  {}% Manually specify head
+
+  
+\theoremstyle{invar}
+%\theoremstyle{goal}
+\newtheorem{invar}{Invariant}
+\newtheorem{goal}{Design Goal}
+
+\usepackage{listings-rust}
+
+\lstset{
+    language=Rust, 
+    style=boxed,
+    basicstyle=\ttfamily,
+    columns=fullflexible,
+    breaklines=true,
+    escapechar=\#,
+    postbreak=\mbox{\textcolor{blue}{$\hookrightarrow$}\space},
+}
+\lstset{language=Rust, style=colouredRust}
+%\remarkfalse
+%\cutforspacetrue
+
+\input{defs}
+
+
+\begin{document}
+
+%\title{Sustainable Persistent Programming in Rust with \This{}}
+\title{\papertitle}
+
+\author{Morteza Hoseinzadeh, Steven Swanson} 
+\date{}
+
+
+\maketitle
+
+\thispagestyle{empty}
+
+\input{abstract}
+\input{intro}
+\input{background}
+\input{overview}
+%\input{impl}
+\input{results}
+\input{related}
+\input{conclude}
+\input{bib}
+
+\end{document}

@@ -1,0 +1,47 @@
+%auto-ignore
+
+\newcommand{\papertitle}{\This{}: Statically-Enforced Persistent Memory Safety}
+
+\newcommand{\this}{Corundum}
+\newcommand{\This}{Corundum}
+\newcommand{\lst}{\mathcal{L}}
+
+
+%\lstMakeShortInline!
+
+\lstnewenvironment{rust}{}{}
+
+
+% \newfloat{lstfloat}{t}{lop}
+% \floatname{lstfloat}{Listing}
+
+%tighten bold paragraph
+\renewcommand{\boldparagraph}[1]{\vspace*{0.5ex}\noindent\textbf{#1}\hspace{1em}}
+
+
+\newenvironment{goaltrue}[1]{\begin{discuss}[Design Goal~\ref{#1} (\nameref{#1}) Holds:]}{\end{discuss}}% ignore macros
+
+\newenvironment{discuss}[1][Details:]{\boldparagraph{#1}}{\vspace{1ex}}%$\blacksquare$}
+
+\newcommand{\rerr}{{\color{red}\textbf{{\fontencoding{U}\fontfamily{futs}\selectfont\char 66\relax}}}}
+
+\newcommand{\refl}[1]{Line~\ref{#1}}% ignore macros ignore misc
+\newcommand{\reflr}[2]{Lines~\ref{#1}--\ref{#2}}% ignore macros ignore misc
+
+
+\usepackage{adjustbox}
+\usepackage{array}
+
+\newcolumntype{R}[2]{%
+    >{\adjustbox{angle=#1,valign=m,height=#2,padding*=0em -1.1em 0 0.2em}\bgroup}%
+    l%
+    <{\egroup}%
+}
+\newcolumntype{K}[2]{%
+    >{\adjustbox{angle=#1,valign=m,height=(#2),padding*=0em -1.1em 0 0.2em}\bgroup}%
+    l%
+    <{\egroup}%
+}
+\newcommand*\rot{\multicolumn{1}{R{40}{2em}}}% no optional argument here, please!
+\newcommand*\up{\multicolumn{1}{R{90}{2em}}}% no optional argument here, please!
+\newcommand*\upr{\multicolumn{1}{K{90}{2em}|}}% no optional argument here, please!

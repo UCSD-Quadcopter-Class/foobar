@@ -1,0 +1,98 @@
+%auto-ignore
+\section{Introduction}
+\label{sec:introduction}
+
+Persistent main memory (PM) is the first new memory technology to arrive in
+the memory hierarchy since the appearance of DRAM in the early 1970's.  PM offers
+numerous potential benefits including improved memory system capacity,
+lower-latency and higher-bandwidth relative to disk-based storage, and a unified programming model for
+persistent and volatile program state.  However, it also poses a host of novel
+challenges.  For instance, it requires memory controller and ISA support, new operating
+system facilities, and it places large, novel burdens on programmers.
+
+The programming challenges it poses are daunting and stem directly from its
+non-volatility, high-performance, and direct connection to the processor's
+memory bus.  PM's raw performance demands the removal of system
+software from the common-case access path, its non-volatility requires that (if
+it is to be used as storage) updates must be robust in the face of system failures,
+and its memory-like interface forces application software to deal directly with issues
+like fault tolerance and error recovery rather than relying on layers of system software.
+
+In addition, programming with PM exacerbates the impact of existing types of
+bugs and introduces novel classes of programming errors.  Common
+errors like memory leaks, dangling pointers, concurrency bugs, and data structure corruption have
+permanent effects (rather than dissipating on restart).
+New errors are also possible: A programmer might forget to log an update to a
+persistent structure or create a pointer from a persistent data structure to
+volatile memory.  The former error may manifest during recovery
+while the latter is inherently unsafe since, after restart, the pointer to
+volatile memory is meaningless and dereferencing it will result in (at best) an
+exception.
+
+The challenges of programming \emph{correctly} with PM are among the largest
+potential obstacles to wide-spread adoption of PM and our ability to fully
+exploit its capabilities.  If programmers cannot reliably write and modify code
+that correctly and safely modifies persistent data structures, PM will be
+hobbled as a storage technology.
+
+Some of the bugs that PM programs suffer from have been the subject of
+years of research and practical tool building.  The solutions and approaches to
+these problems range from programming disciplines to improved library support
+to debugging tools to programming language facilities.
+
+% \remark{Some more elegant words}
+
+Given the enhanced importance of memory and concurrency errors in PM
+programming, it makes sense to adopt the most effective and reliable mechanisms
+available for avoiding them.
+
+The Rust programming language provides programming language-based mechanisms to
+avoid a host of common memory and concurrency errors.  Its type system,
+standard library, and ``borrow checker'' allow the Rust compiler to statically
+prevent data races, synchronization errors, and memory
+allocation errors.  Further, the performance of the resulting machine code is
+comperable with that of compiled C or C++.  In addition to these built-in
+static checks, Rust also provides facilities that make it easy (and idiomatic)
+to create new types of smart pointers that integrate cleanly with the rest of
+the language.  Its type systems also make data modification explicit and easy to control.
+
+We have leveraged Rust's abilities to create \this{}, a library (or ``crate''
+in Rust parlance) that lets programmers build persistent data structures.
+\This{} provides basic PM programming facilities (e.g., opening and mapping
+persistent memory pools) and a persistent software transactional memory
+interface to provide atomic updates to persistent data.
+
+Uniquely, \this{} uses (mostly) static checking to enforce several key PM
+programming invariants:
+
+\begin{itemize}
+ 
+\item \This{} prevents the creation of unsafe pointers between non-volatile memory regions (or ``pools'') and pointers from those pools into volatile memory.
+  
+\item \This{} ensures that programs only modify persistent memory within transactions and that they log all updates to persistent state.
+  
+\item \This{} prevents persistent memory allocation errors (leaks, dangling pointers, and multiple frees) in the presence of multiple, independent pools of PM.
+  
+%\item \This{} hides low-level PM programming operations (e.g. preserving write ordering, creating logs, etc.) behind its high-level interface.
+
+\end{itemize}
+
+Our experience building \this{} demonstrates the benefits that a strong type
+system can bring to PM programming.  We evaluate \this{} quantitatively and
+qualitatively by comparing it to existing PM programming libraries.  We find
+that \this{} provides stronger guarantees than other libraries and that it is
+as fast or faster than those libraries.  We also highlight some changes
+to Rust that would make \this{} even more powerful and efficient.
+
+The rest of paper is organized as follows. \refsec{sec:background} gives a brief
+background information on PM programming and the Rust language.
+\refsec{sec:overview} describes \this{}.  In \refsec{sec:results}
+we evaluate our library. \refsec{sec:related} places \this{} in context relative to related work.
+ Finally, \refsec{sec:conclude} concludes.
+
+% \remark{Mention lower level PM programming constructs}
+
+% \remark{Mention learning curve shifting}
+
+
+

@@ -1,0 +1,325 @@
+%auto-ignore
+% -*-  eval: (display-line-numbers-mode 1)(auto-fill-mode 1); -*-
+\section{Background}
+\label{sec:background}
+
+\this{} adds PM programming support to Rust by providing facilities for
+accessing persistent memory, providing a transaction mechanism to ensure
+consistency in the case of failure, and statically detecting common PM
+programming bugs.
+
+To accomplish this, \this{}  confronts a set of challenges that are common
+among PM programming systems for languages like C, C++, and Java.
+\This{} addresses these challenges using the unique features of Rust.
+
+
+\subsection{Persistent Memory Programming}
+\label{sec:prog}
+
+The emergence of persistent main memory technologies (most notably Intel's
+Optane DIMMs)~\cite{3DXPoint} brings byte-addressable, persistent memory to
+modern processors.  The persistent memory appears in the processor's physical
+address space.
+
+The most popular operating system mechanism for exposing persistent memory to
+applications is to use a PM-aware file system to manage a large region of
+persistent memory.  An application can use a direct access (DAX) \mmap{} system
+call to map a file in the file system into its virtual address space.  From
+there, the application can access the memory directly using load and store
+instructions, avoiding all operating system overheads in the common case.
+
+\subsubsection{PM Programming Support}
+
+While DAX \mmap{} provides access, productively and safely using PM presents
+challenges that typical PM programming libraries address.  To be
+successful, \this{} must address these as well.  Below, we outline the most
+important of these challenges.
+  
+
+PM libraries provide access to
+multiple independent \emph{pools} of persistent memory with a \emph{root} object
+from which other objects are reachable.
+
+Each pool has a private, atomic memory
+allocator for allocating and reclaiming space within the pool that is robust in the face of system crashes.
+
+Libraries usually identify which types can
+exist in a pool.  For instance, the library may provide a base class or interface that
+persistent object should inherit from or implement.
+
+Finally, PM libraries provide a means to express atomic sections, usually in
+the form of a persistent software transactional
+memory~\cite{pmdk,nvheaps,oracle-nvm-direct} mechanism that specifies regions of code
+that should be atomic both with respect to failure and to concurrent
+transactions.
+
+\subsubsection{PM Bugs}
+
+PM programmers must reckon with a wide range of potential bugs that can cause
+permanent corruption, lead to unsafe behavior, or leak resources.  These
+include common memory allocation/deallocation errors and race conditions as
+well as PM-specific challenges.  
+
+The three most critical types of PM-specific bugs are logging errors, unsafe
+inter-pool pointers, and pointers into closed pools.
+
+\boldparagraph{Logging errors} An atomic section
+must log all persistent updates so the transaction can roll back in
+case of a system failure~\cite{nvheaps,pmfs,atlas,mnemosyne,aries,rewind}.  Failing to manually log an update (as some
+systems require) can let a poorly-timed system crash compromise data integrity.
+
+Updates can be hard to recognize in code, leading to unlogged updates.  For instance,
+passing the address of a field of a persistent struct to a library function
+might (to the programmer's surprise) modify the data it points to.
+
+\boldparagraph{Inter-pool pointers} PM programs can simultaneously access
+several, independent PM pools in addition to the conventional, volatile heap
+and stack.  The PM pools need to be self-contained so that one pool does not
+contain a pointer into another pool or into volatile memory.  Dereferencing
+such a pointer is certain to be unsafe after a restart.
+
+\boldparagraph{Pool Closure} If a pool closes, the system must unmap
+the memory it contains.  This leaves any pointers from DRAM into the pool unsafe~\cite{nvheaps}.
+
+\subsection{Rust}
+\label{sec:rust}
+
+The Rust programming language~\cite{rustbook} is intended for parallel,
+low-level, systems programming and it uses a sophisticated type system to
+prevent a range of common programming errors.  For instance, its type system 
+makes data races impossible and it provides cheap reference counting garbage collection.
+The result is a thoroughly modern language that is about as fast
+as C or C++ but with vastly stronger safety guarantees.
+
+Rust is a well-loved by the developers who use it~\cite{mostloved} despite having
+a moderately steep learning curve due to it requiring
+programmers to think differently about variable lifetimes, mutability, and
+concurrency.
+
+Since the memory allocation, synchronization, and safety invariants that PM
+programming provides are a strict superset of those for conventional volatile
+programming, we can leverage Rust's safety guarantees to improve the safety of
+PM programming.
+
+Many guarantees that Rust provides are not built in the
+language itself, but are implemented in its standard library.  This means that
+we can use the same language features to enforce new guarantees in an idiomatic
+and familiar (to Rust programmers) way.
+
+Below we, describe the key features of Rust that \this{} uses to provide
+PM-specific safety guarantees.  For a thorough introduction, consult the Rust manual~\cite{rustbook}.
+
+\subsubsection{Mutability, Immutabilty, and Interior Mutability}
+
+Mutability is a central concept in Rust that governs when a value may change.
+The critical property that Rust maintains is that there can be one mutable
+reference to a piece of data or multiple immutable references, but not both.
+We refer to this as \emph{the mutability invariant}.  In most instances, Rust
+enforces this invariant statically.
+
+\ignore{In some cases, static checks are too restrictive or the program may need to
+enforce further constraints on when data can be mutable.  For
+instance, Rust's \csym{Mutex} is a container that holds the data it protects.
+It enforces mutual exclusion by preventing the creations of references (mutable
+or immutable) to its contents if another thread holds the mutex.
+
+\csym{Mutex} illustrates the important concept of \emph{interior mutability}.
+Curiously, \csym{Mutex} objects themselves are always immutable.  However,
+\csym{Mutex} exposes a mutable reference to its contents using interior
+mutability: \csym{Mutex.lock()} can return a mutable guard object that is a
+reference to data the mutex contains and protects.  When the guard goes out of
+scope, the lock is released.}
+
+In some cases, static checks are too restrictive or the program may need to
+enforce further constraints on when data can be mutable.  Rust provides
+\emph{interior mutability} for these situations, and the wrapper type
+\csym{RefCell} exemplifies this concept.  Curiously, \csym{RefCell}s are always
+immutable so assigning to them directly is impossible.  However, the program
+can acquire mutable and immutable references by calling
+\cfunc{RefCell::borrow\_mut} and \cfunc{RefCell::borrow}, respectively.  These
+functions return reference objects (similar to smart pointers) that programs
+can use to access the data.  The key is that the \csym{RefCell}
+dynamically enforces the mutability invariant: Calling \cfunc{borrow} when a
+mutable reference object exists or \cfunc{borrow\_mut} when any reference object
+exists will cause a \cfunc{panic!}.
+
+
+%\This{} uses interior mutability to prevent modifications to presistent data
+%outside of transactions.
+
+\subsubsection{Smart Pointers, Wrappers, and Dynamic Memory Allocation}
+\label{sec:wrapper}
+
+Rust uses smart pointers and type wrappers to implement memory management,
+garbage collection, and concurrency control.  Defining new kinds of smart
+pointers, type wrappers, and guard objects that integrate cleanly into the language is easy,
+since Rust makes dereferencing smart pointers fully transparent.
+
+Rust's standard library provides a range of smart pointer types and type
+wrappers (the \csym{<>} notation is Rust's syntax for generics):
+
+\begin{enumerate}
+
+\item \csym{Box<T>} is a pointer to an object of type \csym{T} allocated on a
+  the heap.  When a \csym{Box<T>} goes out of scope, the allocated data is
+  freed.
+  
+\item \csym{Rc<T>} is a reference-counted pointer to a heap-allocated object of type
+  \csym{T}.  Multiple instances of
+  \csym{Rc<T>} can point to the same data, and when the last \csym{Rc<T>} goes
+  out of scope, the data is reclaimed.  Since multiple
+  \csym{Rc} instances can refer to the same data, \csym{Rc<T>} does not allow
+  the modification of data it holds.
+
+\item \csym{RefCell<T>} (described above) is a wrapper type holding an object of type \csym{T} that
+  is immutable except via interior mutability.
+
+\item \csym{Mutex<T>} is a thread-safe version of \csym{RefCell}.  Its
+  \cfunc{lock} method, locks the mutex and returns a reference object that is
+  also a guard object for the mutex.  When the reference goes out of scope, the
+  lock is released.
+  
+%\item \csym{Option<T>} is a value that can either hold a value of type \csym{T}
+%  or no value at all (i.e, \csym{None}).
+
+%% \item \csym{UnsafeCell<T>} is Rust's primitive to support interior mutability.
+%%   All interior mutability is ultimately implemented in terms of
+%%   \csym{UnsafeCell<T>}.
+
+%% \item \csym{Cell<T>} allows by-value read/write operations using
+%%   \cfunc{get}/\cfunc{set} functions with interior mutability.
+  
+\end{enumerate}
+
+Each of these wrappers encapsulates a specific set of capabilities, and
+programmers can compose them to build feature-rich data types.  For instance, a
+common idiom -- \csym{Rc<RefCell<T>{>}} -- combines \csym{RefCell}
+with \csym{Rc} to provide shared, mutable objects.
+%\steve{(Arc and RefCell are not composable. The correct composition is either 
+%\csym{Rc<RefCell>} or \csym{Arc<Mutex>})} 
+
+\cutforspace{For instance,
+the type \csym{Rc<RefCell<u32> >} is a modifiable, reference-counted pointer
+to a heap-allocated unsigned 32-bit integer.  Note that while \csym{Arc} does
+not provide mutable access to the \csym{RefCell},
+the \csym{RefCell} \emph{does} allow mutable access via interior mutability.
+For instance, \csym{Option<Box<u32> >} is non-reference counted pointer that
+can be null.}
+
+When the last reference to an object dies, Rust ``drops'' it.  Dropping a
+struct recursively drops
+any fields it contains and types can implement \cfunc{drop} to implement destructor-like
+functionality.  For instance, \cfunc{drop} for \csym{Box} deallocates the
+memory it holds, and \cfunc{drop} for \csym{Rc} decrements the reference
+count and frees the memory if it reaches zero.
+
+\subsubsection{Option Types}
+
+Rust provides optional values in form of \csym{Option<T>} that can be either \csym{Some(data)} (where \csym{data} is of type \csym{T}), or \csym{None}.  Its most common use to allow for null pointers: \csym{Box<T>} is always a valid pointer to allocated memory, but \csym{Option<Box<T{>}>} can either be \csym{None} or a \csym{Box<T>}.
+
+
+\csym{Option} is one instance of Rust's \csym{enum} mechanism, and Rust provides a \csym{match} construct that is similar to \csym{switch} in C, but requires the programmer provide code for all possible values.  For \csym{Option<PBox<T{>}>}, this avoids null dereferences and forces code to account for pointers that might be null.
+
+\cutforspace{
+
+  \subsubsection{Ownership and Borrowing}
+\label{sec:scope}
+
+The notion of ``ownership'' is central to Rust's ability to statically avoid data races and unsafe pointer dereferences.  At any time, each value in Rust has a single variable that ``owns'' it.  When the owner goes out of scope, the value is dropped and its resources can be reclaimed.  Programs can transfer ownership through variable assignment or by passing the variable to a function.
+
+In addition to simple variables, Rust also supports ``references'' that can refer to values without owning them.  Passing a reference to a function causes the function to ``borrow'' the value from the caller.  While the value is borrowed, the owner cannot access it.
+
+By default, variables and references are immutable, and programmers must take explicit action to create mutable variables and references.  Further, only a single mutable reference can exist at any time.
+}
+
+\ignore{\This{} exploits these constraints to prove safety in \refsec{sec:sys}}
+
+\ignore{To better manage the memory, languages define the scope of visibility of an object.  Rust enforces a set of rules, called ``Scoping Rules'' to manage memory and shield the program against resource leak bugs. Scopes indicate to the compiler when variables are created or destroyed, when resources can be freed, and when borrows (we will discuss borrowing later in this section) are valid. These rules consider variables owning resources. Using RAII, Rust compiler instruments destruction code whenever the object goes out of its scope, frees resources belonging to it, and invalidates borrows.}
+
+\ignore{\subparagraph{Ownership.} To prevent data races and provide memory safety, Rust variables are considered as the owners of resources. Enforced by RAII, they are in charge of freeing their own resources when they are not in use. To prevent multiple deallocation, resources can only have one owner. Therefore in Rust's design, the ownership of data is transferred to the new variable instead of simply copying data in a data assignment operation (e.g. \csym{let x = y}). This is also happening when we pass an argument to a function. In that case, the scope of the data also changes to the internal scope of the function, because the original variable is no longer owning the resource. Changing the ownership of data also determines its mutability state. When a resource is owned by an immutable variable, its content cannot be changed. }
+
+\ignore{\subparagraph{Borrowing.} Taking the ownership of data is not always useful, especially when we would like to access data temporarily in another function. To realize this, Rust comes with a borrowing mechanism that allows passing resources by reference (\csym{\&T}). The compiler uses a borrow checker to statically guarantee the validity of referents. Just like moving the ownership, values also can be borrowed with different mutability options. If a value is moved immutably, there is no way to modify it. Rust also prevents mutable referencing an immutable variable to prevent data race. There can be one or more immutable references to a resource (\csym{\&T}), or exactly one mutable one (\csym{\&mut T}), but it is not possible to have both types at the same time. Data can be borrowed again when the mutable reference no longer exists. When a mutable data is immutably borrowed, it cannot be modified via the original owner until all references go out of scope.}
+
+\ignore{\subparagraph{Lifetime.} To prevent access violation while lending out a reference to a resource in another scope, Rust defines lifetime for every reference. Lifetime (or \textit{borrow checker}) determines when a borrow is available, and when a resource can be borrowed. A good example of that is when we attempt to return a reference to a local variable in a function. Rust compiler prevents this case because the lifetime of the local variable is the internal scope of the function which is smaller than the lifetime of its borrow that is being sent out from the function scope.}
+
+\ignore{
+and traits (similar
+to Java interfaces).  It does not support inheritance.
+
+
+}
+
+\subsubsection{Traits and Type Bounds}
+\label{sec:gen}
+
+Rust provides \emph{traits} that are similar to Java or C\# interfaces.
+Structures can implement traits.  A ubiquitous Rust idiom is to ``bound'' or
+restrict the types that can be used in a particular context based on the traits
+they implement. 
+
+Of particular importance are ``auto traits'' that all types (even primitive types)
+implement by default but can opt out of.  For instance, all primitive types
+implement the \csym{Copy} trait so they can be passed by value to functions.
+We say those types ``are \csym{Copy}''.  \csym{Box<T>} does not implement
+\csym{Copy} since copying it would result in two pointers to the same data.
+So, we say \csym{Box<T>} is \csym{!Copy}.
+
+Another auto trait, \csym{Send} labels types that can pass from one thread
+to another.
+
+\ignore{\subsubsection{Concurrency}
+
+Rust's provide built-in support for threads and its type system eliminates
+data races.  Two traits -- \csym{Sync} and
+mark types that be shared between threads and allow Rust to enforce the mutability
+invariant across threads.}
+
+\subsubsection{Panic}
+
+In response to serious errors, programs can call \cfunc{panic!} to end the
+program.  Rust provides an exception-like mechanism to catch panics and attempt
+to recover from them.
+
+\subsubsection{Unsafe Rust}
+
+Rust provides \csym{unsafe} code blocks which give the programmer access to a
+superset of normal, safe Rust.  Unsafe Rust
+allows C-like direct manipulation of memory, unsafe casts, etc.  The Rust
+standard library uses unsafe Rust to implement interior mutability and many
+other critical features (e.g., system calls and low-level memory management).
+
+Libraries like \this{} can declare types or functions to be unsafe, preventing
+their invocation or use in safe code.
+
+If programmers decide to use \csym{unsafe} constructs, they
+assume responsibility for enforcing the guarantees that Rust (or the library)
+relies upon.  Typical Rust programmers do not use
+\csym{unsafe} constructs.
+
+\cutforspace{\subsubsection{Standard Library}
+
+The Rust standard library provide efficient implementations of vectors, hash
+maps, and strings.  These implementation make use of unsafe code to improve
+performance.
+}
+
+\ignore{\subsubsection{Copy and Clone Traits}
+
+For safety reasons, Rust does not copy smart pointers upon assignment operations to avoid multiple untraceable references to a memory location. To provide referencing to an owned memory locations, pointer types implement the \csym{Clone} trait. The programmer can copy the memory location (for \csym{Box<T>}), or instantiate a new reference (for \csym{Rc<T>} and \csym{Arc<T>}) by explicitly invoking the \csym{clone} function. \this{} provides \csym{PClone} as an alternative for \csym{Clone} trait in PM.
+}
+
+\ignore{\subsubsection{Option Type}
+
+Rust provides optional values in form of \csym{Option<T>} that can be either \csym{Some(data)}, or \csym{None}. It has several uses in Rust including, but not limited to, nullable pointers. Since the smart pointer types cannot be assigned to null values, wrapping them in an \csym{Option} is a solution to represent a nullable smart pointer. Similarly, \this{} provides \csym{MaybeNull} (either \csym{Valid(data)} or \csym{Null}) which implements \csym{PClone} as opposed with \csym{Clone} in \csym{Option}.}
+
+% \morteza{If you are going to use \csym{None} and \csym{Some} you need to describe what they are.} \steve{I didnt get it. Isnt it clearto show enough?}
+
+\ignore{\subsubsection{Interior Mutability}
+
+To strongly reason about pointer aliasing, Rust disallows multiple mutable references to a shared object. However, this limits the flexibility of having pointers to a shared data. To allow mutation, Rust provides \csym{Cell} and \csym{RefCell} types which allow mutable access to the interior data even though the they are not mutably referenced. \csym{Cell} allows updating data through the \cfunc{set} function without borrowing it mutably, and \csym{RefCell} allows mutable borrowing by enforcing Rust's ownership rules at runtime. Neither of these violates Rust's safety rules.}
+
+\ignore{\subsubsection{Chain Drop}
+\label{sec:chain}
+
+Rust enforces RAII (Resource Acquisition Is Initialization) that invokes the destructor of data when its owner goes out of scope before freeing the resources. Rust makes sure that all dependent objects are dropped prior to the object itself. This creates a finite chain of calls to the destructors and properly reclaiming the allocated memory. However, data is not really a dependent in pointer objects. Therefore, Rust provides \csym{Drop} trait that allows types performing more operations while being dropped. Using which, the pointer types can branch the dropping chain to include their referents too. More specifically, \csym{Box} always extends dropping to its pointee, while \csym{Rc} and \csym{Arc} do this only when they find no strong reference to the data. 
+}
