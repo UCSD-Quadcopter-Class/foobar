@@ -200,14 +200,14 @@ object to its pool.  Likewise, transactions are bound to a particular pool via
 the pool type.  In our discussion, we use \csym{P} as a representative pool
 type.
 
-Programs open a pool by calling \csym{P}'s \cfunc{open} function: \csym{P::open<T>(foo)}.  This binds \csym{P} to the pool in file
+Programs open a pool by calling \csym{P}'s \cfunc{open} function:\linebreak\csym{P::open<T>(foo)}.  This binds \csym{P} to the pool in file
 \csym{foo}.  \This{} ensures that only one open pool is bound to \csym{P} at
 any time.  The type parameter, \csym{T}, determines the type of the root
 pointer.  \cfunc{P::open<T>} returns an immutable reference to the root pointer.  Pools remain
-open until the reference to the root object drops.
+open until reference to the root object drops.
 
 Programmers can statically declare multiple pool types using the
-\cfunc{Pool!} macro, but the number of pool types available (and,
+\cfunc{pool!} macro, but the number of pool types available (and,
 therefore, the number of simultaneously open pools) is fixed at compile time.
 
 \boldparagraph{Persistent Objects} Objects in a pool must implement the
@@ -422,7 +422,7 @@ pools have different types.  Second, their constructors and mutating accessors
 take a journal object as an argument.
 
 Three of the methods listed --
-\cfunc{PRefCell::borrow}, \cfunc{PRefCell::borrow\_mut}, and
+\cfunc{PRefCell::borrow},\linebreak\cfunc{PRefCell::borrow\_mut}, and
 \cfunc{PMutex::lock} -- return objects that behave like references.  These
 objects are all stranded. %subject to same constraints as the smart pointers (e.g., they
 %are \csym{!TxOutSafe}).
@@ -473,8 +473,8 @@ volatile memory are \csym{!PSafe}.
 object goes out of scope, deallocating the memory. In this case,
 \cfunc{upgrade} will return \csym{None}, which is safe in Rust.
 
-\boldparagraph{Pointers into closed pools} If a pool closes, dereferencing any
-pointers into the pool becomes unsafe.  \This{} combines three approaches to
+\boldparagraph{Pointers into closed heaps} If a heap closes, dereferencing any
+pointers into the heap becomes unsafe.  \This{} combines three approaches to
 prevent this.
 
 First, accessing a pointer to a closed pool from within a transaction is not
@@ -493,19 +493,19 @@ after the pool closes.  However, \cfunc{VWeak::upgrade} requires a journal
 object to retrieve a usable reference, so it can only be called from inside a
 transaction, which is only possible if \csym{P} is open (see above).
 
-%% \subsubsection{Strong static type system.} In order to prevent cross pool referencing, we consider pools as data types, and generate new persistent pointer type for each pool. Although this constrains the pool types to be known in compile time, it provides strong safety guarantees. For example, \reflst{lst:cross} shows a code snippet in which the programmer attempts to assign an integer data allocated in \csym{P2} to a pointer existing in \csym{P1} which is prevented by the compiler. The objection is that \csym{p1} is a \csym{LogCell} that contains a pointer of type \csym{Pbox<i32,P1>} while \csym{p2} is a pointer of type \csym{Pbox<i32,P2>}.
+% \subsubsection{Strong static type system.} In order to prevent cross pool referencing, we consider pools as data types, and generate new persistent pointer type for each pool. Although this constrains the pool types to be known in compile time, it provides strong safety guarantees. For example, \reflst{lst:cross} shows a code snippet in which the programmer attempts to assign an integer data allocated in \csym{P2} to a pointer existing in \csym{P1} which is prevented by the compiler. The objection is that \csym{p1} is a \csym{LogCell} that contains a pointer of type \csym{Pbox<i32,P1>} while \csym{p2} is a pointer of type \csym{Pbox<i32,P2>}.
 
-%% \begin{lstlisting}[caption={Cross-Pool referencing prevention via type system},label={lst:cross}]
-%% P1::transaction(|j1|{
-%%     let p1 = LogCell::new(
-%%         Pbox::new(1, j1), j1);
-%%     P2::transaction(|j2|{
-%%         let p2 = Pbox::new(1, j2);
-%%         p1.set(p2, j1);
-%%                --^^ expected P1, found P2
-%%     }).unwrap();
-%% }).unwrap();
-%% \end{lstlisting}
+% \begin{lstlisting}[caption={Cross-Pool referencing prevention via type system},label={lst:cross}]
+% P1::transaction(|j1|{
+%     let p1 = LogCell::new(
+%         Pbox::new(1, j1), j1);
+%     P2::transaction(|j2|{
+%         let p2 = Pbox::new(1, j2);
+%         p1.set(p2, j1);
+%                --^^ expected P1, found P2
+%     }).unwrap();
+% }).unwrap();
+% \end{lstlisting}
 
 \end{goaltrue}
   
@@ -520,8 +520,8 @@ Two wrapper types in \reftab{tab:types} provide interior mutability for persiste
 acquiring a lock.  The lock is automatically release at the end of the
 transaction.
 
-\csym{PRefCell} returns mutable and immutable references via
-\cfunc{PRefCell::borrow\_mut} and \cfunc{PRefCell:borrow},
+\csym{PRefCell} returns mutable and immutable references via\linebreak
+\texttt{PRefCell::borrow\_mut} and \cfunc{PRefCell:borrow},
 respectively.  It dynamically enforces Rust's mutability
 invariants for these references.
 
@@ -828,7 +828,7 @@ When a pool initiates a transaction, it first checks whether it is called from a
   \begin{tabular}{|l|c|c|c|c|c|c|c|c|}\hline
     \input{system-survey.table}
   \end{tabular}
-  \caption{\This{} more static checks than other PMEM libraries, using them to meet most of its design goals. ('S'=Static, 'D'=Dynamic, 'M'=Manual, 'GC'=Garbage Collection, 'RC'=Reference Counting)}
+  \caption{\This{} more static checks than other PMEM libraries, using them to meet most of its design goals. ('S'=Static, 'D'=Dynamic, 'M'=Manual, 'GC'=Garbage Collection)}
   \label{tab:libs}
 \end{table*}
  
@@ -844,7 +844,7 @@ If the \csym{Option} is \csym{None}, the code has reached the end of the list.  
 
 Function \cfunc{go} opens ``list.pool'' and binds it to pool type \csym{P}.  The root pointer will hold a \csym{Node} struct.  \refl{ln:tx} starts a transaction, which provides a journal object, which \refl{ln:call} passes to \cfunc{append}.
 
-Several aspects of the code are notable.  First, \csym{head} and \csym{n} are both immutable, so changes are not possible until \cfunc{borrow\_mut} uses interior mutability to return a mutable reference object.  Second, we must pass \csym{j} into \cfunc{append} to ensure it executes in a transaction thereby allowing the call to \cfunc{borrow\_mut}  and the memory allocation (\refl{ln:new}).  Third, although we create call \cfunc{borrow\_mut} for every link in the list, \this{} only logs the last one, since logging only happens when \csym{*t} dereferences the reference object (\refl{ln:new}).  Fourth, as written, \csym{Node} and \csym{append} only work on pool type \csym{P}.  A more complete implementation would be make \csym{P} a generic type parameter, so they could work on any pool type.
+Several aspects of the code are notable.  First, \csym{head} and \csym{n} are both immutable, so changes are not possible until \cfunc{borrow\_mut} uses interior mutability to return a mutable reference object.  Second, we must pass \csym{j} into \cfunc{append} to ensure it executes in a transaction thereby allowing the call to \cfunc{borrow\_mut}  and the memory allocation (\refl{ln:new}).  Third, although we create call \cfunc{borrow\_mut} for every link in the list, \this{} only logs the last one, since logging only happens when \csym{*t} dereferences the reference object (\refl{ln:new}).  Forth, as written, \csym{Node} and \csym{append} only work on pool type \csym{P}.  A more complete implementation would be make \csym{P} a generic type parameter, so they could work on any pool type.
 
 \subsection{Limitations}
 \label{sec:discuss}
@@ -871,11 +871,17 @@ preferable.  An enhanced version Rust's lifetime mechanism might be of use in
 this case, since it might be able to keep the pool open until all pointers into
 it went out of scope.
 
-\This{} also cannot prevent the declaration of a pointer from one pool to another (e.g.,
-\csym{PBox<PBox<T,Q>,P>}).  The resulting pointer is unsafe, and preventing
-such an assignment requires a dynamic check.  One solution would be to allow
-auto traits to take parameters, so a trait
-\csym{PSafe<P>} could indicate persistent safety only in pool \csym{P}.
+\ignore {
+  \This{} also cannot prevent the declaration of a pointer from one pool to another (e.g.,
+  \csym{PBox<PBox<T,Q>,P>}).  The resulting pointer is unsafe, and preventing
+  such an assignment requires a dynamic check.  One solution would be to allow
+  auto traits to take parameters, so a trait
+  \csym{PSafe<P>} could indicate persistent safety only in pool \csym{P}.
+
+  \steve{It might not prevent the declaration, but by making the journal object to pass the transaction boundaries, it statically prevents initialization of such type.}
+}
+
+\This{} also cannot prevent invoking certain functions from a transaction. The resulting problem is that \cfunc{thread::spawn} may leak an unreachable \csym{Parc} when it is created inside a transaction and sent to a thread without being referenced by the root object. To prevent that, \this{} makes \csym{Parc::VWeak} \csym{Send} rather than \csym{Parc} itself, and dynamically enforces invoking \cfunc{Parc::demote} when there is no transaction running. One solution for statically preventing that would be to bound captured functions, so that transactions can reject \cfunc{thread::spawn} invocation.
 
 \cutforspace{\boldparagraph{Warts} \this{}'s ``rough edges'' trace themselves to aspects of
 Rust's design.  For instance, marking \csym{PBox} and \csym{Parc} as
@@ -904,7 +910,7 @@ than Rust.
 
 \boldparagraph{Deadlock} \This{} does not prevent deadlock despite several
 demonstrations that this is possible in a TM
-system~\cite{convoider,grace,tm2c,stmlock}.  We omitted deadlock detection and
+system~\cite{convoider,grace,tm2c,stmlock}.  We did omitted deadlock detection and
 recovery for simplicity and to align \csym{PMutex}'s behavior with \csym{Mutex}'s.
   
 \boldparagraph{Log-Free Programming} \This{} is more restrictive than most

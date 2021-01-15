@@ -1,0 +1,230 @@
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% When adding this appendix to your paper, 
+% please remove above part
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\clearpage 
+\appendix
+\section{Artifact Appendix}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Abstract}
+
+This appendix provides the necessary information for obtaining the source code,
+building, and running performance and functionality tests of Corundum. 
+We describe the hardware and software requirements to run the
+experiments and reproduce the results as they appear in the \refsec{sec:results}.
+
+\subsection{Artifact check-list (meta-information)}
+
+{\small
+\begin{itemize}
+  \item {\bf Program: } Corundum library and its unit tests, Rust, Cargo, PMDK v1.8. Input files for the experiments are included (74~MB).
+  \item {\bf Compilation: } Rust 1.50.0-nightly (publicly available), GNU C++11, CMake $>=$ 3.3 
+  \item {\bf Data set: } Data set is included (\verb+eval/inputs+)
+  \item {\bf Run-time environment: } Linux (latest version). The NVMM should be mounted in \verb+/mnt/pmem+ using a DAX-enabled file system (e.g. EXT4-DAX). We also provide a docker image containing linux 20.04 LTE with pre-installed dependencies.
+  \item {\bf Hardware: } A machine with a 16-core Intel processor with 16 GB or larger NVMM (e.g. Optane DC). The docker does not require NVMM and uses DRAM to emulate NVMM. 
+  \item {\bf Metrics: } Execution time
+  \item {\bf Output: } Numerical results stored in \verb+perf.csv+ and \verb+scale.csv+ for performance and scalability, respectively. Expected results are also included in the text.
+  \item {\bf Experiments: } A script is provided to run the experiments and generate results. Although the results may vary depending on the build and the environment, there should not be a big difference between Corundum's performance and PMDK's.
+  \item {\bf How much disk space required (approximately)?: } 32~GB
+  \item {\bf How much time is needed to prepare workflow (approximately)?: } 30 minutes
+  \item {\bf How much time is needed to complete experiments (approximately)?: } $\leq$ 1 hour.
+  \item {\bf Publicly available?: } Code, unit-tests, documentation, examples, and evaluation scripts are publicly available.
+  \item {\bf Code licenses (if publicly available)?: } Apache v2.0
+  \item {\bf Archived (provide DOI)?: } \href{https://zenodo.org/record/4329841}{DOI: 10.5281/zenodo.4329841}
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Description}
+
+\subsubsection{How to access}
+
+The artifacts are publicly available
+through Zenodo archival repository and GitHub. You can access the code by using its \href{https://zenodo.org/record/4321062}{DOI} or cloning the GitHub repository at \href{https://github.com/NVSL/Corundum/}{https://github.com/NVSL/Corundum/}.
+
+We also prepared a Docker image available 
+
+\subsubsection{Hardware dependencies}
+
+We recommend running the experiments on a machine with physical persistent memory such as Intel Obtane DC with at least 16~GB available space.
+
+Also, the scalability tests require at least 16-core processor to measure the execution time while running threads in parallel.
+
+\subsubsection{Software dependencies}
+
+\begin{itemize}
+  \item If you wish to use Docker, please install Docker and use the prepared docker image with pre-installed dependencies. Otherwise, please run \verb+eval/setup.sh+ on Ubuntu latest version.
+  \item To measure performance, we use \verb+perf+, a linux builtin monitoring tool for analyzing programs (included in \verb+eval/setup.sh+).
+  \item To compare Corundum with PMKD, please install both `libpmemobj' and `libpmemobj-cpp' by running \verb+eval/build.sh+.
+\end{itemize}
+
+\subsection{Installation}
+
+The docker image already have the dependencies pre-installed. If you wish to run it on a real system, please follow the steps in the rest of this section.
+
+\subsubsection{Installing Rust}
+
+If you prefer installing Rust manually rather than running `\verb+setup.sh+', please follow throw these steps.
+On a Unix-like OS machine, the following commands
+install Rust compiler, Cargo, and \verb+rustup+. 
+
+\begin{verbatim}
+curl --proto '=https' --tlsv1.2 \
+     -sSf https://sh.rustup.rs | sh
+source $HOME/.cargo/env
+rustup default nightly
+\end{verbatim}
+
+If tou are using
+another OS, please refer to Rust's official website
+for the instructions at
+\begin{center}
+  \verb+https://www.rust-lang.org/tools/install+
+\end{center}
+
+\subsubsection{Building Corundum}
+
+Corundum is publicly available in GitHub. Please use
+the following commands to clone and compile it.
+
+\begin{verbatim}
+$ git clone https://github.com/NVSL/Corundum.git
+$ cd Corundum
+$ cargo build --release --examples
+\end{verbatim}
+
+\subsubsection{Verifying the compilation}
+
+Optionally you can run the tests to verify it.
+Since tests may share pool files, we run them sequentially
+by using a single thread.
+
+\begin{verbatim}
+cargo test --tests -- --test-threads=1 
+\end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Experiment workflow}
+
+Running the experiments is automated though the following set of commands (for your convenience, please login as `root').
+
+\begin{verbatim}
+$ git clone https://github.com/NVSL/Corundum.git
+$ cd Corundum/eval
+$ ./setup.sh     # Install dependencies
+$ ./build.sh     # Build the workloads
+$ ./run.sh       # Run the tests
+$ ./results.sh   # Display the results
+\end{verbatim}
+
+The \verb+eval/setup.sh+ downloads necessary libraries (for PMDK and Rust), and \verb+eval/build.sh+ compiles the benchmark applications.
+\verb+eval/run.sh+ executes benchmarks and collects the results, and generates two files:
+
+\begin{itemize}
+  \item \verb+perf.csv+: Compares Corundum with PMDK (Figure 1)
+  \item \verb+scale.csv+: Evaluates multi-threading scalability (Figure 2)
+\end{itemize}
+
+\noindent Finally, \verb+eval/results.sh+ displays the results on screen.
+
+
+\subsection{Running on a Docker}
+
+We also prepared a docker image with pre-installed dependencies, PMDK (libpmemobj and libpmemobj-cpp), Corundum, and the input datasets. We will use \verb+tmpfs+ in the docker to mount DRAM into `\verb+/mnt/pmem0+'. We also need to enable \verb+perf_event_open+ system calls. Please run the following commands on the host machine to give permission to, download, and run the docker image.
+
+
+\begin{verbatim}
+$ sudo sysctl -w kernel.perf_event_paranoid=-1
+$ wget https://raw.githubusercontent.com/NVSL/\
+Corundum/main/eval/docker-default.json
+$ docker run --security-opt \
+    seccomp=./docker-default.json \
+    --mount type=tmpfs,destination=/mnt/pmem0 \
+    -it mhz88/corundum:latest bin/bash
+\end{verbatim}
+
+\noindent
+Inside the docker, please run the following commands to run the experiments.
+
+\begin{verbatim}
+$ cd ~/Corundum/eval
+$ ./run.sh && ./results.sh
+\end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Evaluation and expected results}
+
+We discuss performance evaluation in terms of execution time compared with an equivalent implementation in PMDK, and execution time using multiple threads to show scalability. 
+
+\subsubsection{Performance}
+
+To compare Corundum's performance with PMDK, we use three applications written in both of them: BST, VKStore, and B+Tree. The provided script runs these applications automatically with random inputs. The results are stored in \verb+perf.csv+ and should look like \reftab{tbl:perf}.
+
+\begin{table}
+  \center
+  \small
+  \setlength\tabcolsep{1.5pt}
+  \begin{tabular}{|c|c|c|c|c|c|c|c|c|} \hline
+    \multicolumn{9}{|c|}{Execution Time (s)}	\\ \hline						
+    & \multicolumn{2}{|c|}{BST}	& \multicolumn{2}{|c|}{KVStore}&\multicolumn{4}{|c|}{B+Tree}	\\ \hline	
+    & INS&CHK&PUT&GET&INS&CHK&REM&RAND\\ \hline
+    PMDK&4.5&4.1&8.7&5.1&8.6&2.2&7.9&6.3\\\hline
+    Corundum&3.4&3.4&2.9&2.1&12.9&1.4&11.8&8.6\\\hline
+  \end{tabular}
+  \caption{Expected output for performance comparison between PMDK and Corundum (perf.csv).}
+  \label{tbl:perf}
+\end{table}
+
+
+\subsubsection{Scalability}
+To verify that Corundum provides scalability with respect to the thread number, we implemented a MapReduce application called \verb+grep+ which counts the frequency of every word in a list of text documents. The producer threads fill up a shared stack, and the consumer threads pop a batch from the stack, using a local record, count the frequency of every words in the batch, and finally update a shared HashMap with the local records. \reftab{tbl:scale} shows the expected execution times in seconds for various number of producer (p) and consumer (c) threads. We use Large Canterbury Corpus (http://www.data-compression.info/Corpora/CanterburyCorpus/) dataset as the input files (included in the archive).
+
+\begin{table}[!ht]
+  \center
+  \begin{tabular}{|c|c|c|c|c|c|} \hline
+    p/c&1&2&3&7&14\\ \hline
+    1&30.83&15.85&11.09&7.45&8.03\\ \hline
+    2&28.77&15.65&11.65&6.96&7.36\\ \hline
+  \end{tabular}
+  \caption{Expected output for Scalability (scale.csv) using emulated PM.}
+  \label{tbl:scale}
+\end{table}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Experiment customization}
+
+Corundum requires a DAX-enabled file system. We recommend EXT4-DAX. If you run the experiments on a real machine, use the following commands to format and mount the derive.
+
+\begin{verbatim}
+mkfs.ext4 /dev/pmem0
+mount -o dax /dev/pmem0 /mnt/pmem0
+\end{verbatim}
+
+Many of the latency components are originated in Hardware, such as using \verb+CL_FLUSHOPT+ instead of \verb+CL_FLUSH+ when available. Corundum does not automatically detect these capabilities. However, it comes with some builtin features. In `\verb+Cargo.toml+', under the `features' section, update \verb+default=[]+ as required. For example, if the system supports \verb+CLWB+ instructions, you may force Corundum to use that by changing the default features to this:
+
+\begin{center}
+  \verb+default = ["pthread", "use_clwb"]+
+\end{center}
+
+Please note that in \verb+run.sh+, we disabled \verb+CL_FLUSHOPT+ and \verb+CLWB+ to force both PMDK and Corundum use \verb+CL_FLUSH+ to persist data.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Methodology}
+
+Submission, reviewing and badging methodology:
+
+\begin{itemize}
+  \item \url{https://www.acm.org/publications/policies/artifact-review-badging}
+  \item \url{http://cTuning.org/ae/submission-20201122.html}
+  \item \url{http://cTuning.org/ae/reviewing-20201122.html}
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% When adding this appendix to your paper, 
+% please remove below part
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

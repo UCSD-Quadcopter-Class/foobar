@@ -136,7 +136,7 @@ enforce further constraints on when data can be mutable.  Rust provides
 \csym{RefCell} exemplifies this concept.  Curiously, \csym{RefCell}s are always
 immutable so assigning to them directly is impossible.  However, the program
 can acquire mutable and immutable references by calling
-\cfunc{RefCell::borrow\_mut} and \cfunc{RefCell::borrow}, respectively.  These
+\cfunc{RefCell::borrow\_mut} and\linebreak\cfunc{RefCell::borrow}, respectively.  These
 functions return reference objects (similar to smart pointers) that programs
 can use to access the data.  The key is that the \csym{RefCell}
 dynamically enforces the mutability invariant: Calling \cfunc{borrow} when a
@@ -171,7 +171,7 @@ wrappers (the \csym{<>} notation is Rust's syntax for generics):
   \csym{Rc} instances can refer to the same data, \csym{Rc<T>} does not allow
   the modification of data it holds.
 
-\item \csym{RefCell<T>} (described above) is a wrapper type holding an object of type \csym{T} that
+\item \csym{RefCell<T>} (described above) is a wrapper type holds an object of type \csym{T} that
   is immutable except via interior mutability.
 
 \item \csym{Mutex<T>} is a thread-safe version of \csym{RefCell}.  Its
@@ -215,7 +215,7 @@ count and frees the memory if it reaches zero.
 
 \subsubsection{Option Types}
 
-Rust provides optional values in form of \csym{Option<T>} that can be either \csym{Some(data)} (where \csym{data} is of type \csym{T}), or \csym{None}.  Its most common use to allow for null pointers: \csym{Box<T>} is always a valid pointer to allocated memory, but \csym{Option<Box<T{>}>} can either be \csym{None} or a \csym{Box<T>}.
+Rust provides optional values in form of\linebreak\csym{Option<T>} that can be either \csym{Some(data)} (where \csym{data} is of type \csym{T}), or \csym{None}.  Its most common use to allow for null pointers: \csym{Box<T>} is always a valid pointer to allocated memory, but \csym{Option<Box<T{>}>} can either be \csym{None} or a \csym{Box<T>}.
 
 
 \csym{Option} is one instance of Rust's \csym{enum} mechanism, and Rust provides a \csym{match} construct that is similar to \csym{switch} in C, but requires the programmer provide code for all possible values.  For \csym{Option<PBox<T{>}>}, this avoids null dereferences and forces code to account for pointers that might be null.
@@ -263,6 +263,10 @@ implement the \csym{Copy} trait so they can be passed by value to functions.
 We say those types ``are \csym{Copy}''.  \csym{Box<T>} does not implement
 \csym{Copy} since copying it would result in two pointers to the same data.
 So, we say \csym{Box<T>} is \csym{!Copy}.
+\steve{Wrong example. Copy is not an auto trait. It is a special tairt that
+the compiler decides what type may or may-not have. `Send' is a good example
+which is an auto trait for all types except the ones that opt out for, such
+as Rc.}
 
 Another auto trait, \csym{Send} labels types that can pass from one thread
 to another.
@@ -276,7 +280,7 @@ invariant across threads.}
 
 \subsubsection{Panic}
 
-In response to serious errors, programs can call \cfunc{panic!} to end the
+In response to serious errors, programs can call\linebreak\cfunc{panic!} to end the
 program.  Rust provides an exception-like mechanism to catch panics and attempt
 to recover from them.
 

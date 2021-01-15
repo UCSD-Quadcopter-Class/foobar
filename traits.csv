@@ -1,7 +1,0 @@
-"","Description","\multicolumn{2}{|c|}{Key types that are...}","","\\"
-"","","\csym{x}","\csym{!x}","\\\hline"
-"\csym{TxInSafe}","Types that can be captured transactions.","\csym{Pbox<T,P>}, \csym{Parc<T,P>}, \csym{Prc<T,P>}, \csym{PRefCell<T,P>}, \csym{PCell<T,P>}, \csym{Pmutex<T,P>}, \csym{RootCell<T,P>}, \csym{\&T}, primitive arithmetic types, ","\csym{\&mut T}, \csym{RefCell<T>}, \csym{Cell<T>}, other mutable or interior mutable volatile types, \csym{Journal<P>}","\\\hline"
-"\csym{TxOutSafe}","Types that can be returned by transactions.","primitive arithmetic types.","\csym{Journal<T>}, \csym{Pbox<T,P>}, \csym{Parc<T,P>}, \csym{Prc<T,P>}, \csym{PRefCell<T,P>}, \csym{PCell<T,P>}, \csym{Pmutex<T,P>}, \csym{RootCell<T,P>}, \csym{\&T},","\\\hline"
-"\csym{PSafe}","Types that are allowed in persistent pools.","\csym{Pbox<T,P>}, \csym{Parc<T,P>}, \csym{Prc<T,P>}, \csym{PRefCell<T,P>}, \csym{PCell<T,P>}, \csym{Pmutex<T,P>}, \csym{RootCell<T,P>}, primitive arithmetic types.","\csym{\&T}, \csym{\&mut T}, \csym{RefCell<T>}, \csym{Cell<T>}, other references to volatile data, IO-related types (e.g., file handles), \csym{Journal<P>}","\\\hline\hline"
-"\csym{Send}","Rust type trait for values that can be transferred between threads.","Everything else","\csym{Prc<T,P>}, \csym{Journal<P>}, \csym{PRef<T, P>}, \csym{PMutRef<T, P>}, \csym{PMutexGuard}","\\\hline"
-"\csym{Sync}","Rust type trait for values that can be shared between threads.","","","\\\hline"

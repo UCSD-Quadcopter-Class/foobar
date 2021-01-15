@@ -37,7 +37,7 @@ performance with \csym{unsafe}.
   \center
   \begin{tabular}{|r||c|c||c|c|}
     \hline
-    & Rust & \This{} & C++ & PMDK \\ \hline\hline
+    App & Rust & \This{} & C++ & PMDK \\ \hline\hline
     Linked List & 192&+19 (9.9\%) & 146&+45 (30.8\%)  \\ \hline
     Binary tree & 256&+12 (4.7\%) & 208&+41 (19.7\%) \\ \hline
     HashMap     & 165&+10 (6.1\%)  & 137&+42 (30.7\%) \\ \hline
@@ -172,8 +172,8 @@ socket × 6 channel × 256~GB/DIMM) of Intel Optane DC DIMMs.  Our machine runs 
 Linux kernel version 4.13.0.
 
 \This{} uses some unstable features of Rust, so we use Rust Nightly version
-1.45.0 built with `release' profile.  We compared \this{} with PMDK 1.8 built
-with `-O2'.  We use \extfsDAX{} to mount the persistent memory and create the
+1.51.0 built with `release' profile.  We compared \this{} with PMDK 1.8, Atlas, Mnemosyne built
+with `-O2'. All of them use `\clflushopt' for durability without using non-temporal store. The go compiler applies optimizations to go-pmem by default. We use \extfsDAX{} to mount the persistent memory and create the
 pool files.
 
 \ignore{\subsection{Testing}
@@ -209,6 +209,18 @@ We implemented three micro-benchmarks to verify single-thread thread programs, c
 
 The experiments reveal that the final output of the applications with the possibility of crashes are consistent with the output of the normal execution in all of the mentioned scenarios. The memory usage in all cases also does not change which confirms the reliability of \this{}'s memory management.
 }
+
+
+\begin{table}
+  \center
+  \footnotesize
+  \begin{tabular}{|l||c|c||c|c|}\hline
+    \input{microbench.table}
+  \end{tabular}
+  \caption{\textbf{\This's basic operation latency and standard deviation} for durability (excluding DRAM) and safety support measured on different devices. }
+  \label{tab:microbench}
+\end{table}
+
 \subsection{Performance}
 \label{sec:res:perf}
 
@@ -238,7 +250,7 @@ To measure the performance in both \this{} and PMDK, we use the linux provided t
 \subsubsection{Workloads}
 \label{sec:res:perf:workload}
 
-\reftab{tab:perf:wrkld} summarizes the workloads we used to evaluate the performance of \this{} and its scalability.  The first three applications are used to compare performance with PMDK. The PMDK version of BST, KVStore, and B+Tree are available in PMDK repository.   We reimplemented them in \this{} using the same algorithms.
+\reftab{tab:perf:wrkld} summarizes the workloads we used to evaluate the performance of \this{} and its scalability.  The first three applications are used to compare performance with PMDK, Atlas, Mnemosyne, and go-pmem. The PMDK version of BST, KVStore, and B+Tree are available in PMDK repository. We reimplemented them in \this{} and the other libraries using the same algorithms.
 
 % The BST data structure consists of nodes that are wrapped in \csym{MaybeNull<Pbox<\_>{>}}. Since there is no data sharing and moving nodes, we use \csym{Pbox}. To atomically allocate new nodes without transactions, we leverage the low-level atomic allocation provided in \csym{MaybeNull::initialize()} function. This function is specialized for pointer type wrappers. Taking the inner data of type \csym{T} to be located in the PM, it returns an instance of \csym{Valid(Pbox<T>)} only if the old value was \csym{Null} (otherwise, raises an error). The performance of \csym{initialize} is comparable with \csym{POBJ\_ALLOC} in PMDK, but it works with safe data. We measure the performance of inserting 30,000 integers (INS) and checking their presence (CHK) in the data structure.
 
@@ -258,28 +270,36 @@ To measure the performance in both \this{} and PMDK, we use the linux provided t
 \subsubsection{Results}
 \label{sec:res:perf:res}
 
-\reffig{fig:perf} shows the results of our experiments comparing \this{}'s performance with PMDK and \this{}-dynamic, a version of \this{} that does not use pool types, but instead relies on dynamic checks to achieve design goal 2 (\nameref{goal:ptrs-are-safe}).
+\ignore{
+  \reffig{fig:perf} shows the results of our experiments comparing \this{}'s performance with PMDK and \this{}-dynamic, a version of \this{} that does not use pool types, but instead relies on dynamic checks to achieve design goal 2 (\nameref{goal:ptrs-are-safe}).
+  
+  Performance with pool types (``\this{}'') is always at least as fast as PMDK,
+  and sometimes significantly faster.  Dynamic checks (\this{}-Dynamic)
+  hurt performance since they require (at least) obtaining the pool object and
+  performing several comparisons.
+}
 
-Performance with pool types (``\this{}'') is always at least as fast as PMDK,
-and sometimes significantly faster.  Dynamic checks (\this{}-Dynamic)
-hurt performance since they require (at least) obtaining the pool object and
-performing several comparisons.
+\reffig{fig:perf} shows the results of our experiments comparing \this{}'s performance with PMDK, Atlas, Mnemosyne, and go-pmem. 
+
+The BST workload uses failure-atomic instantiation rather than transaction allocation and initialization. This features is not available in Atlas and go-pmem.
 
 \begin{figure}
     \begin{center}
     \includegraphics[width=3.3in]{Graphs/perf.pdf}
     \end{center}
-    \caption{\label{fig:perf} Performance comparison between \this{} and PMDK}
+    \caption{\label{fig:perf} Performance comparison between \this{}, PMDK, Atlas, Mnemosyne, and go-pmem}
 \end{figure}
 
 Wordcount measures scalability.  \This{} provides
 %\steve{separate allocators for every core, and (I changed it back to single allocator to prevent some sync issues when one allocator is full. It was easier to debug. Anyway, it didn't destroy the performance, at all.)}
 a separate journal object for every thread to allow concurrency. %concurrent allocation.
-\reffig{fig:scal} confirms that the performance scales with thread count.  The bottleneck in this experiment is the contention over the shared data structures that threads use to communicate.
+\reffig{fig:scal} confirms that the performance scales with thread count.  The bottleneck in this experiment is the contention the shared data structures the threads use to communicate.
 
 \begin{figure}
     \begin{center}
     \includegraphics[width=3.3in]{Graphs/scal.pdf}
     \end{center}
-    \caption{\label{fig:scal} \this{}'s scalable performance with regard to the number of threads}
+    \caption{\label{fig:scal} \this{}'s scalable performance with regard to the number of threads.
+    The \csym{wordcount} benchmark uses one producer thread that buffers characters from files and multiple consumer threads
+    that read from the buffer, count the frequency of each word, and update their local counters in isolation.}
 \end{figure}

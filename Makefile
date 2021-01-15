@@ -1,4 +1,4 @@
-PDF_TARGETS = paper.pdf extended-abstract.pdf
+PDF_TARGETS = paper.pdf
 include libpaper/Make.rules
 LIBPAPER ?=../libpaper
 .PHONY: setup
