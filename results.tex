@@ -210,17 +210,6 @@ We implemented three micro-benchmarks to verify single-thread thread programs, c
 The experiments reveal that the final output of the applications with the possibility of crashes are consistent with the output of the normal execution in all of the mentioned scenarios. The memory usage in all cases also does not change which confirms the reliability of \this{}'s memory management.
 }
 
-
-\begin{table}
-  \center
-  \footnotesize
-  \begin{tabular}{|l||c|c||c|c|}\hline
-    \input{microbench.table}
-  \end{tabular}
-  \caption{\textbf{\This's basic operation latency and standard deviation} for durability (excluding DRAM) and safety support measured on different devices. }
-  \label{tab:microbench}
-\end{table}
-
 \subsection{Performance}
 \label{sec:res:perf}
 
@@ -273,15 +262,16 @@ To measure the performance in both \this{} and PMDK, we use the linux provided t
 \ignore{
   \reffig{fig:perf} shows the results of our experiments comparing \this{}'s performance with PMDK and \this{}-dynamic, a version of \this{} that does not use pool types, but instead relies on dynamic checks to achieve design goal 2 (\nameref{goal:ptrs-are-safe}).
   
-  Performance with pool types (``\this{}'') is always at least as fast as PMDK,
-  and sometimes significantly faster.  Dynamic checks (\this{}-Dynamic)
+  Dynamic checks (\this{}-Dynamic)
   hurt performance since they require (at least) obtaining the pool object and
   performing several comparisons.
 }
 
 \reffig{fig:perf} shows the results of our experiments comparing \this{}'s performance with PMDK, Atlas, Mnemosyne, and go-pmem. 
+Performance with pool types (``\this{}'') is always at least as fast as other libraries,
+and sometimes significantly faster.
 
-The BST workload uses failure-atomic instantiation rather than transaction allocation and initialization. This features is not available in Atlas and go-pmem.
+\reffig{fig:scal} illustrates the performance speed up using multiple threads in the \csym{wordcount} benchmark. The linear scalability with respect to the number of threads shows that the \this{}'s thread-dedicated allocator and journalling objects can perfectly support multi-threading as long as the implementation does not incur imperfect concurrency.
 
 \begin{figure}
     \begin{center}
@@ -303,3 +293,26 @@ a separate journal object for every thread to allow concurrency. %concurrent all
     The \csym{wordcount} benchmark uses one producer thread that buffers characters from files and multiple consumer threads
     that read from the buffer, count the frequency of each word, and update their local counters in isolation.}
 \end{figure}
+
+
+\begin{table}
+  \center
+  \footnotesize
+  \begin{tabular}{|l||c|c||c|c|}\hline
+    \input{microbench.table}
+  \end{tabular}
+  \caption{\textbf{\This's basic operation latency and standard deviation} for durability and safety support measured on Intel's Optane DC and Battery-Backed DRAM, with 100K operations per test. }
+  \label{tab:microbench}
+\end{table}
+
+\subsubsection{Basic Operation Performance}
+
+\reftab{tab:microbench} reports the latency of basic operations along with the standard deviation measured on the platform described in \refsec{sec:res:platform}. To evaluate the impact of storage technology, we measure these operations on both Optane DC persistent memory and DRAM. The standard deviation (STD) shows how much we should expect the measured latency can vary.
+
+To measure dereferencing operation latency, we use a \csym{Pbox<i32>}. Dereferencing a persistent pointer involves address translation and memory indirection. The Rust compiler uses CPU registers to cache the base and offset addresses. As a result, the dereferencing operation performs less than 1~ns, for both read and write. However, writing for the first time requires taking a log of data which takes around 565~ns.
+
+For memory allocation, \This{} uses buddy-blocks algorithm which performs small allocations by splitting large free blocks, and merge small free adjacent blocks on deallocation to yield larger free blocks. Therefore, small free blocks are more available than large free blocks. For example, a free block of size 8192~B can be split into 1024 small free blocks of 8~B, or only 2 large block of size 4~kB. \reftab{tab:microbench} confirms this fact. In contrast to allocation, freeing memory takes almost constant time, because the merging happens fewer most of the time due to unavailability of the buddy block. The failure-atomic instantiation operation (AtomicInit) allocates new memory and fill it with a given value atomically using low-level redo logging in the allocator. This operation is as fast as the allocation because the allocation is the only major part of it.
+
+\This{} keeps a journal object in the PM per thread with at list one page of 64 log slots. Therefore, running an empty transaction (TxNop) does not write to the PM. The roughly similar latency in PM and DRAM in \reftab{tab:microbench} confirms this. DataLog shows the latency of taking an undo log for a data with 8~B, 2~kB, and 32~kB sizes. It requires allocating memory and copying data to the log location. Therefore, the larger the data, the slower the operation, due to the allocation process. However, creating a DropLog which only keeps the information of allocation has a fixed size, and takes constant time.
+
+The \cfunc{pclone} method in \csym{Pbox} creates a new instance of \csym{Pbox} by allocating and copying data to a new location. Therefore, the latency of \csym{Pbox::clone} is the aggregation of PM allocation and \cfunc{memcpy}. However, \csym{Prc} and \csym{Parc} do not allocate memory. They only update their reference counters transactionally. \csym{Parc} uses atomic counters which explains its longer latency compared with \csym{Prc}. The \cfunc{downgrade} and \cfunc{upgrade} function also transactionally update the counters and we can use the same explanation as for \cfunc{pclone}. Although the \cfunc{demote} function use similar mechanism as \cfunc{downgrade} to create volatile weak pointer, they additionally update a reference list in \csym{Prc}/\csym{Parc} which makes them slower. However, the latency of \cfunc{promote} is similar to \cfunc{upgrade} because they perform the same operation.

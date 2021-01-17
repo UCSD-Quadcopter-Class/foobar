@@ -1,27 +1,30 @@
 %&How does it ensure that only persistent data types reside in persistent memory?&How does it prevent (or ensure the validity of) pointers from one NV region/pool to another region/pool?&How does it prevent pointers from an NV region into DRAM?&How does it ensure the safety of pointers from DRAM to NV?  For example, if an NV object's reference count goes to zero and it is deallocated or the persistent region is unmapped, how do you prevent dereferences to the resulting invalid pointers in volatile memory?&How does it prevent unsynchronized access to shared persistent data?&How does it prevent unlogged writes to persistent data?&How does it prevent modifications to persistent data outside of transactions?&How does it prevent persistent memory leaks?
 Operation&\multicolumn{2}{c||}{Optane DC}&\multicolumn{2}{c|}{DRAM}\\\cline{2-5}
 &Mean (ns)&STD (ns)&Mean (ns)&STD (ns)\\\hline\hline
-Alloc(8)&665&738&229&181\\\hline
-Alloc(256)&963&21731&339&790\\\hline
-Alloc(4K)&4124&130499&1959&2571\\\hline
-Dealloc(8)&771&948&246&149\\\hline
-Dealloc(256)&695&750&236&134\\\hline
-Dealloc(4K)&680&601&234&117\\\hline
-% TxNop&1984&724&816&152\\\hline
-TxNop&203&119&192&73\\\hline
-DataLog(8)&898&5442&291&385\\\hline
-DataLog(2K)&853&7573&329&665\\\hline
-DataLog(32K)&5947&101974&1974&1978\\\hline
-DropLog(8)&88&483&60&349\\\hline
-DropLog(32K)&103&5293&59&353\\\hline
-Pbox::clone&1399&822&419&152\\\hline
-Prc::clone&19&10&19&9\\\hline
-Prc::downgrade&20&10&20&8\\\hline
-Prc::Weak:upgrade&20&11&20&11\\\hline
-Parc::clone&29&7&29&19\\\hline
-Parc::demote&74&167&75&160\\\hline
-Parc::downgrade&32&9&32&12\\\hline
-Parc::VWeak::promote&33&11&33&6\\\hline
-Parc::Weak::upgrade&32&11&32&14\\\hline
-Deref&18&6.9&18&7.5\\\hline
-DerefMut&20&7.8&20&6.8\\\hline
+\csym{Deref}&0.726&-&0.733&0.1\\\hline
+\csym{DerefMut} (1st)&564.809&699&239.659&123.6\\\hline
+\csym{DerefMut} (not 1st)&0.456&-&0.454&0.7\\\hline
+\csym{Alloc} (8~B)&529.701&831.6&231.227&130.5\\\hline
+\csym{Alloc} (256~B)&620.378&744.6&249.89&167.4\\\hline
+\csym{Alloc} (4~KB)&1626.167&37715.2&1910.196&2489\\\hline
+\csym{AtomicInit} (8~B)&431.942&371.7&263.67&96.4\\\hline
+\csym{Dealloc} (8~B)&476.851&598.2&223.293&136.5\\\hline
+\csym{Dealloc} (256~B)&581.262&630.8&237.774&145\\\hline
+\csym{Dealloc} (4~KB)&660.553&690.3&242.235&145.7\\\hline
+\csym{TxNop}&258.463&220.2&209.333&59.7\\\hline
+\csym{DataLog} (8~B)&557.517&644.2&249.509&131.1\\\hline
+\csym{DataLog} (2~KB)&607.748&692&267.512&145.6\\\hline
+\csym{DataLog} (32~KB)&2215.264&683.4&1268.671&780.5\\\hline
+\csym{DropLog} (8~B)&31.518&57.8&28.254&15.7\\\hline
+\csym{DropLog} (32~KB)&42.934&111.4&30.754&23\\\hline
+\csym{Pbox::pclone} (8~B)&873.121&652.4&332.809&126.8\\\hline
+\csym{Prc::pclone}&30.132&104.8&24.45&35.9\\\hline
+\csym{Parc::pclone}&56.093&203.3&38.196&58.9\\\hline
+\csym{Prc::downgrade}&21.064&10.5&21.057&6.3\\\hline
+\csym{Parc::downgrade}&33.536&8.2&33.547&6.2\\\hline
+\csym{Prc::Weak:upgrade}&21.801&4.8&21.827&4.6\\\hline
+\csym{Parc::Weak::upgrade}&32.761&0.8&32.826&9.2\\\hline
+\csym{Prc::demote}&49.912&94.8&51.543&113.5\\\hline
+\csym{Parc::demote}&63.235&101.3&64.063&109.5\\\hline
+\csym{Prc::VWeak::promote}&24.235&11&25.21&12.5\\\hline
+\csym{Parc::VWeak::promote}&34.326&32.3&34.122&6.7\\\hline
