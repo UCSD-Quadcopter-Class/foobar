@@ -20,5 +20,60 @@ fn go(v: i32) {
 }
 \end{lstlisting}
 \caption{A \this{} implementation of linked list append.  Some error management code has been elided for clarity.}
-\label{lst:example}
+\label{lst:examples}
 \end{lstfloat}
+
+% \begin{table*}%[!ht]
+%   \center
+%   \small
+%   \begin{tabular}{p{3.4in}p{3.4in}}
+%     \begin{lstlisting}[escapechar=\#,caption=Insert method of a sorted linked-list in Rust]
+% struct Node {val:i32, nxt:Rc<RefCell<Option<Node>>>}
+% impl Node {
+%   fn append(&self, val: i32) {
+% #\hllr{\linewidth}#
+%     let mut nxt = self.nxt.borrow_mut();
+%     if let Some(n) = &*nxt {
+%       if n.val > val {
+%         *nxt = Some(Node { val,
+%           nxt: self.nxt.clone()
+%         })
+%       } else { n.insert(val); }
+%     } else {
+%         *nxt = Some(Node { val,
+%           nxt: Rc::new(RefCell::new(None))})
+%     }
+% #\hllr{\linewidth}#
+%   }
+% }
+% fn main() {
+% #\hllr{\linewidth}#  let head = #\hlc{77pt}#Default::default();
+%   head.insert(10);
+% }\end{lstlisting}
+%     &
+%       \begin{lstlisting}[escapechar=\#,caption=Insert method of a sorted linked-list in \This,label=lst:examples]
+% #\hll{\linewidth}# struct Node {val:i32, nxt:#\hlw{12pt}#Prc<#\hlw{32pt}#PRefCell<Option<Node>>>}
+% impl Node {
+%   fn append(&self, val: i32) {#\label{ln:tx2}#
+% #\hll{\linewidth}#    #\hlw{72pt}#transaction(|j| {
+% #\hll{\linewidth}#      let mut nxt = self.nxt.borrow_mut(#\hlw{5pt}#j);#\label{ln:borrow}#
+%       if let Some(n) = &*nxt {#\label{ln:if}#
+%         if n.val > val {#\label{ln:if2}#
+%           *nxt = Some(Node { val,
+% #\hll{\linewidth}#            nxt: self.nxt.#\hlw{38pt}#pclone(j)
+%           })
+%         } else { n.insert(val); }
+%       } else {
+%         *nxt = Some(Node { val,
+% #\hll{\linewidth}#          nxt: #\hlw{12pt}#Prc::new(#\hlw{32pt}#PRefCell::new(None,#\hlw{5pt}#j),#\hlw{5pt}#j)})#\label{ln:new}#
+%       }
+% #\hll{\linewidth}#    #\hlw{47pt}#}).unwrap()#\label{ln:txend2}#
+%   }
+% }
+% fn main() {
+% #\hll{\linewidth}#  let head = #\hlw{127pt}#P::open::<Node>("list.pool",0);
+%   head.insert(10);
+% }\end{lstlisting}
+% \end{tabular}
+% \vspace*{-\baselineskip}\vspace*{-\baselineskip}
+% \end{table*}

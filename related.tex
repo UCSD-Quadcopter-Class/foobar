@@ -28,11 +28,25 @@ tools~\cite{intel-pmemcheck,intel-inspector,lantz2014yat} targeting PM systems.
 While useful, these tools cannot provide safety guarantees and they rely on the
 programmer using them reliably and providing tests with good coverage.
 
+\subsection{PM Programing Libraries}
+
 Among PM libraries, PMDK~\cite{pmdk} is the mostly widely used.  It provide dynamic checks to prevent inter-pool pointers in C and the C++ version provides static enforcement for atomicity, but otherwise the programmer is responsible for enforcing safety.
 
 NV-Heaps~\cite{nvheaps} and Mnemosyne~\cite{mnemosyne} rely on the C++ type system and a custom compiler, respectively, to statically avoid data races, atomicity violations, and pointers from PM into volatile memory.  Both systems go to some pains help avoid bugs, but the weakness of the C/C++ type systems make the guarantees they provide easy to circumvent.  NV-heaps addresses the problem of closed pools -- by not allowing pools to close.
 
 NVM Direct~\cite{oracle-nvm-direct} adds extensions to C/C++ via a custom compiler that gives the programmer detailed control over logging.  It is, by design, ``dangerously flexible - just like C''~\cite{personalbillbridge} to enable as many manual optimizations as possible, so it relies heavily on the programmer to enforce safety properties.  \This{} opts for safety over flexibility and does not require specific compiler support.
+
+\subsection{Orthogonal Persistence}
+
+Orthogonal persistence is a principle for programmability enhancement historically developed for databases which may yield an imperfect implementation of persistent data in terms of performance in persistent programming. To follow orthogonal persistence, the persistence abstraction should allow the creation and manipulation of data in an identical manner, regardless of its lifetime Thereby the persistent view of information is integrated with the programming language view~\cite{atkinson1995orthogonally}. 
+None of the mentioned libraries in this paper provides orthogonal persistence.
+
+Following orthogonal persistence principle, Atlas~\cite{atlas} integrates failure-atomicity with thread-safety, and provides an identical view for manipulating both volatile and persistent data using locks. However, the creation of persistent data is different from volatile data.
+
+Similarly, go-pmem~\cite{gopmem} uses native pointers to provide persistent programming in Go~\cite{golang}. Although it uses native pointers, it requires the programmer to use transactions in order to enhance the performance.
+
+\This{} targets safety with minimal performance overhead, so it may slightly sacrifice programmability in some senses. To make data type orthogonal to persistence, we need compiler-level passes to add dynamic checks such as persistence identification, many of which, such as network sockets and thread handles, are inherently transient. Rather than this, we allow only \csym{PSafe} types to reside in PMEM, and enforce a transactional interface for data manipulation.
+
 
 %are two of the first PM libraries that offer a safe programming environment by enforcing some invariants statically. NV-Heaps also uses reference counting for garbage collection while it should be done manually in Mnemosyne. Although many of the invariants hold statically, checking that data is PM safe is a loophole in both of them. Also, the pool isolation check happens in the runtime, and the safety of V-to-NV pointers is not fully guaranteed.
 

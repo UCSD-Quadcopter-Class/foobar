@@ -81,6 +81,11 @@ such a pointer is certain to be unsafe after a restart.
 \boldparagraph{Pool Closure} If a pool closes, the system must unmap
 the memory it contains.  This leaves any pointers from DRAM into the pool unsafe~\cite{nvheaps}.
 
+
+\subsection{Language Design for Persistence}
+\label{sec:pl}
+\steve{A broader discussion of language design for persistence in general. Rather than just "Rust works great for this", more discussion of what language features are called for, and the ways in which Rust is (or is not) a good fit for those requirements.}
+
 \subsection{Rust}
 \label{sec:rust}
 
@@ -258,18 +263,11 @@ restrict the types that can be used in a particular context based on the traits
 they implement. 
 
 Of particular importance are ``auto traits'' that all types (even primitive types)
-implement by default but can opt out of.  For instance, all primitive types
-implement the \csym{Copy} trait so they can be passed by value to functions.
-We say those types ``are \csym{Copy}''.  \csym{Box<T>} does not implement
-\csym{Copy} since copying it would result in two pointers to the same data.
-So, we say \csym{Box<T>} is \csym{!Copy}.
-\steve{Wrong example. Copy is not an auto trait. It is a special tairt that
-the compiler decides what type may or may-not have. `Send' is a good example
-which is an auto trait for all types except the ones that opt out for, such
-as Rc.}
-
-Another auto trait, \csym{Send} labels types that can pass from one thread
-to another.
+implement by default but can opt out of.  For instance, all types
+implement the \csym{Send} trait so they can be sent to another thread.
+Rust allows negative implementation (using \csym{!} symbol) of auto traits for
+opting out of it. For instance, \csym{Rc<T>} is labeled as 
+\csym{!Send} because it uses non-atomic counters.
 
 \ignore{\subsubsection{Concurrency}
 
