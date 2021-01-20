@@ -1,9 +1,9 @@
 %&How does it ensure that only persistent data types reside in persistent memory?&How does it prevent (or ensure the validity of) pointers from one NV region/pool to another region/pool?&How does it prevent pointers from an NV region into DRAM?&How does it ensure the safety of pointers from DRAM to NV?  For example, if an NV object's reference count goes to zero and it is deallocated or the persistent region is unmapped, how do you prevent dereferences to the resulting invalid pointers in volatile memory?&How does it prevent unsynchronized access to shared persistent data?&How does it prevent unlogged writes to persistent data?&How does it prevent modifications to persistent data outside of transactions?&How does it prevent persistent memory leaks?
 Operation&\multicolumn{2}{c||}{Optane DC}&\multicolumn{2}{c|}{DRAM}\\\cline{2-5}
 &Mean (ns)&STD (ns)&Mean (ns)&STD (ns)\\\hline\hline
-\csym{Deref}&0.726&-&0.733&0.1\\\hline
+\csym{Deref}&0.726&-&0.733&-\\\hline
 \csym{DerefMut} (1st)&564.809&699&239.659&123.6\\\hline
-\csym{DerefMut} (not 1st)&0.456&-&0.454&0.7\\\hline
+\csym{DerefMut} (not 1st)&0.456&-&0.454&-\\\hline
 \csym{Alloc} (8~B)&529.701&831.6&231.227&130.5\\\hline
 \csym{Alloc} (256~B)&620.378&744.6&249.89&167.4\\\hline
 \csym{Alloc} (4~kB)&1626.167&37715.2&1910.196&2489\\\hline

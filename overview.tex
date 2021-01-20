@@ -262,7 +262,8 @@ This provides our first invariant:
 \begin{discuss}
   Since all the types that provide mutable access to volatile data are
   \csym{!TxInSafe}, pre-existing instances of these variables are not available
-  inside the transaction (\refl{ln:txinsafe}).  However, moved objects (using keyword `\csym{move}') and new instances of these
+  inside the transaction (\refl{ln:txinsafe} of \reflst{lst:lifetime}).  However, 
+  %moved objects (using keyword `\csym{move}') and new instances of these
   variables can be created and modified within the transaction.  Preexisting
   volatile data can be read.
   
@@ -272,7 +273,8 @@ modify them, and read captured values (\reflr{l:modifyvstart}{l:modifyvend}).
 But, it cannot modify captured values (\reflr{l:unsaferef}{l:unsafebox}).  Nor
 can it create a mutable reference to a captured value (\refl{l:unsafemake}).
 
-\ignore{\begin{lstlisting}
+\begin{lstfloat}
+  \begin{lstlisting}
     let mut a = 42;
     let b = &mut a;
     let mut c = Box::new(42); 
@@ -281,16 +283,16 @@ can it create a mutable reference to a captured value (\refl{l:unsafemake}).
 	let mut e = Box::new(42);  #\label{l:createvend}#
 	d = a;  #\label{l:modifyvstart}#
 	*e = a; #\label{l:modifyvend}#
-        // #\rerr{}#*b = 0;  #\label{l:unsaferef}#
+        // #\rerr{}#@*b = 0;@  #\label{l:unsaferef}#
         // #\rerr{}#*c = 0;  #\label{l:unsafebox}#
         // #\rerr{}#let g = &mut a; #\label{l:unsafemake}#
 	// #\rerr{}#return e #\label{l:noreturnbox}#
 	return d #\label{l:yesreturnvalue}#
     }).unwrap();
-\end{lstlisting}}
-}
+\end{lstlisting}
+\end{lstfloat}
 
-\cutforspace{The example shows that the transaction can return newly-created volatile data
+The example shows that the transaction can return newly-created volatile data
 by value (\refl{l:yesreturnvalue}) but not by reference/pointer (\refl{l:noreturnbox}).}
 
 %% \subsubsection{Durability.} Another aspect of pointer safety is that the objects they refer live longer than the static lifetime of the program, and they should be reachable when the program restarts to avoid memory leaks. Therefore, \this{} prevents moving out a pointer wrapper from the transaction that it is born in, unless there is a link from the root object to it. To implement that, we consider a special auto trait `\csym{TransactionOutSafe}' that is not implemented by the pointer wrappers. Then we bound the output types of the transaction to be marked as \csym{TransactionOutSafe}.
@@ -509,6 +511,25 @@ from the root to \csym{A}, and the Rust borrow checking rules require that all
 those references are still in scope.  This includes the root pointer, whose
 liveness prevents \csym{P} from closing.
 
+\steve{Please read the following proof.}
+{\color{red}{\reflst{lst:lifetime} shows an example of how reachability is guaranteed.\\ 
+
+\noindent Proof:
+\begin{enumerate}
+  \item Persistent object can be created only inside a transaction, or be the root object.
+  \item No persistent object can be sent out of a transaction.
+  \item persistent objects can be referred by one another and live as long as the referrer is alive.
+  \item Therefore, all persistent objects outside a transaction are one of the following:
+  \begin{enumerate}
+    \item the root object, or
+    \item \label{i:ref} referred by the root object, or
+    \item \label{i:ref2} referred by a persistent object of category (\ref{i:ref}) or (\ref{i:ref2}).
+  \end{enumerate} 
+\end{enumerate}
+
+\noindent The problem is item (\ref{i:ref2}) which allows object A live as long as it refers to itself. This is a memory leak that we should resolve. It is notable that \csym{Pbox} does not have this problem.}}
+
+
 Finally, \csym{VWeak} pointers from volatile memory into the pool can exist
 after the pool closes.  However, \cfunc{VWeak::promote} requires a journal
 object to retrieve a usable reference, so it can only be called from inside a
@@ -532,7 +553,6 @@ P1::transaction(|j1| {
 \caption{Cross-Pool referencing prevention via type system}
 \label{lst:cross}
 \end{lstfloat}
-
 \end{goaltrue}
   
 \subsection{Transactions: Mutability and Isolation}
@@ -713,7 +733,7 @@ unavailable inside the transaction.
 \subsection{Atomic, Leak-Free Memory Allocation}
 \label{sec:rev:alloc}
 
-\This{} provides both atomic and leak-free memory allocation by preventing the
+\This{} provides both atomic and leak-free memory \steve{(Let's discuss)} allocation by preventing the
 creation of \emph{orphaned} memory.  A region of memory in pool \csym{P} is
 orphaned if it is allocated and not reachable from the pool's root.
 
@@ -789,7 +809,9 @@ variable.  Only persistent captured variables can be modified in a transaction
 orphans before the transaction started.  Therefore \csym{A} is reachable from
 the root and now so is \csym{B}.
 
-\textbf{Limitation:} \This{} inherences the memory leak problem of reference counting from Rust. A cyclic reference (in \csym{Prc} and \csym{Parc}) leads to memory leak as the number of references never reaches zero. Therefore, the Rust programmer should be more precautious to prevent reference cycles since the are permanent.
+\ignore{
+  \textbf{Limitation:} \This{} inherences the memory leak problem of reference counting from Rust. A cyclic reference (in \csym{Prc} and \csym{Parc}) leads to memory leak as the number of references never reaches zero. Therefore, the Rust programmer should be more precautious to prevent reference cycles since the are permanent.
+}
 
 \cutforspace{The argument above hinges on the invariant that a reference to orphaned memory
 cannot exist outside a transaction.  However, Rust's mechanism for spawning a

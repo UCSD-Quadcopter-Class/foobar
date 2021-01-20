@@ -8,7 +8,7 @@ numerous potential benefits including improved memory system capacity,
 lower-latency and higher-bandwidth relative to disk-based storage, and a unified programming model for
 persistent and volatile program state.  However, it also poses a host of novel
 challenges.  For instance, it requires memory controller and ISA support, new operating
-system facilities, and it places large, novel burdens on programmers.
+system facilities, and it places large, new burdens on programmers.
 
 The programming challenges it poses are daunting and stem directly from its
 non-volatility, high-performance, and direct connection to the processor's
@@ -49,7 +49,7 @@ available for avoiding them.
 The Rust programming language provides programming language-based mechanisms to
 avoid a host of common memory and concurrency errors.  Its type system,
 standard library, and ``borrow checker'' allow the Rust compiler to statically
-prevent data races, synchronization errors, and memory
+prevent data races, synchronization errors, and most memory
 allocation errors.  Further, the performance of the resulting machine code is
 comperable with that of compiled C or C++.  In addition to these built-in
 static checks, Rust also provides facilities that make it easy (and idiomatic)
@@ -71,7 +71,7 @@ programming invariants:
   
 \item \This{} ensures that programs only modify persistent memory within transactions and that they log all updates to persistent state.
   
-\item \This{} prevents persistent memory allocation errors (leaks, dangling pointers, and multiple frees) in the presence of multiple, independent pools of PM.
+\item \This{} prevents most persistent memory allocation errors (e.g. dangling pointers, and multiple frees) in the presence of multiple, independent pools of PM.
   
 %\item \This{} hides low-level PM programming operations (e.g. preserving write ordering, creating logs, etc.) behind its high-level interface.
 
@@ -81,7 +81,7 @@ Our experience building \this{} demonstrates the benefits that a strong type
 system can bring to PM programming.  We evaluate \this{} quantitatively and
 qualitatively by comparing it to existing PM programming libraries.  We find
 that \this{} provides stronger guarantees than other libraries and that it is
-as fast or faster than those libraries.  We also highlight some changes
+as fast or faster than most of them.  We also highlight some changes
 to Rust that would make \this{} even more powerful and efficient.
 
 The rest of paper is organized as follows. \refsec{sec:background} gives a brief

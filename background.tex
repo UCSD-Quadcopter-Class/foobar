@@ -85,11 +85,11 @@ the memory it contains.  This leaves any pointers from DRAM into the pool unsafe
 \subsection{Language Design for Persistence}
 \label{sec:pl}
 
-The requirements for persistent programming can be categorized into functionality and safety. The functionality requirements are the basic features that a PL provides to enable using the persistent memory, such as allowing system calls to file operations and \mmap{} functions, and low-level implementation of cache flushing. Alternately, a PL can hide the functionalities using a persistent type abstraction.
+The requirements for persistent programming can be categorized into functionality and safety. The functionality requirements are the basic features that a programming language provides to enable using the persistent memory, such as allowing system calls to file operations and \mmap{} functions, and low-level implementation of cache flushing. Alternately, a PL can hide the functionalities using a persistent type abstraction.
 
 The safety features, on the other hand requires additional layers of evaluating the program and enforcing some safety rules either statically or dynamically. Code transformation is one of the common practices to enforce safety dynamically using transactional memory and undo logging~\cite{gopmem,atlas}. However, static checking for PM safety using transactional memory and undo logging requires some linguistic support for persistent data.
 
-Some PM programming tools add some IR passes to instrument the code in order to add this support to the language~\cite{gopmem,atlas,autopersist,mnemosyne,oracle-nvm-direct}. Doing so requires maintaining the tool forever as the standard version of the compiler evolves. Other tools prefer using the available programming features of a language and human efforts to provide safety~\cite{pmdk}. We found the best practice to be using available PL with the following minimal features to provide PM safety statically:
+Some PM programming tools add some compiler passes to instrument the code in order to add this support to the language~\cite{gopmem,atlas,autopersist,mnemosyne,oracle-nvm-direct}. Doing so requires maintaining the tool forever as the standard version of the compiler evolves. Other tools prefer using the available programming features of a language and human efforts to provide safety~\cite{pmdk}. We found the best practice to be using available PL with the following minimal features to provide PM safety statically:
 
 \begin{itemize}
   \item \textbf{Type bounding}: Some data types, such as raw pointers, are unsafe to reside in the PM unless it is guaranteed that they point to the same memory region as they reside. Type bounding can filter out unsafe types in generics.
@@ -279,7 +279,7 @@ implement by default but can opt out of.  For instance, all types
 implement the \csym{Send} trait so they can be sent to another thread.
 Rust allows negative implementation (using \csym{!} symbol) of auto traits for
 opting out of it. For instance, \csym{Rc<T>} is labeled as 
-\csym{!Send} because it uses non-atomic counters.
+\csym{!Send} because it uses non-atomic counters and is, therefore, not safe to share among threads.
 
 \ignore{\subsubsection{Concurrency}
 

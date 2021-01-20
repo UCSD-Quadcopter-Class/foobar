@@ -1,11 +1,15 @@
 \begin{lstfloat}
-  \begin{lstlisting}[escapechar=\#]
-struct Node { val: i32, next: PRefCell<Option<Pbox<Node,P>##>,P> }
+  \begin{lstlisting}[escapechar=\@]
+#[Root]
+struct Node {
+  val: i32,
+  next: PRefCell<Option<Pbox<Node,P>@@>,P>
+}
 fn append(n: &Node, v:i32, j: &Journal<P>) {
-  let mut t = n.next.borrow_mut(j);#\label{ln:borrow}#
-  match &*t {#\label{ln:match}#
+  let mut t = n.next.borrow_mut(j);@\label{ln:borrow}@
+  match &*t {@\label{ln:match}@
     Some(succ) => append(succ, v, j);
-    None => *t = Some(Pbox::new(#\label{ln:new}#
+    None => *t = Some(Pbox::new(@\label{ln:new}@
         Node {
           val: v,
           next: PRefCell::new(None, j)
@@ -14,13 +18,13 @@ fn append(n: &Node, v:i32, j: &Journal<P>) {
 }
 fn go(v: i32) {
   let head = P::open::<Node>("list.pool",0);
-  P::transaction(|j| {#\label{ln:tx}#
-    append(head, v, j);#\label{ln:call}#
-  });#\label{ln:txend}#
+  P::transaction(|j| {@\label{ln:tx}@
+    append(&head, v, j);@\label{ln:call}@
+  });@\label{ln:txend}@
 }
 \end{lstlisting}
 \caption{A \this{} implementation of linked list append.  Some error management code has been elided for clarity.}
-\label{lst:examples}
+\label{lst:example}
 \end{lstfloat}
 
 % \begin{table*}%[!ht]
