@@ -712,23 +712,26 @@ unavailable inside the transaction.
 \subsection{Memory Allocation}
 \label{sec:rev:alloc}
 
-\This{} extends Rust's reference-counting memory management system prevents memory
-leaks (in the absence of cycles) and multiple-frees.  The main difference between
-\this{}'s memory management scheme and Rust's is that \this{} ensures that newly allocated persistent memory is reachable from
-some previous allocated persistent memory.  This ensures that crashes (which
-invalidate all volatile pointers) do not leak memory.  \This{} uses three
-mechanisms to enforce this property.  First, the atomicity of memory
-allocations within a transaction prevents the creation of orphaned data if a
-transaction does not commit.  Second, the transaction cannot assign a
-newly-allocated PMEM region to a captured volatile variable
-(\nameref{inv:tx-no-volatile-mut}).  This prevents persistent data from being
-kept alive solely by a volatile reference.  Third, since the persistent
-pointers types are \csym{!TxOutSafe}, PMEM data cannot escape the transaction
-via the transaction's return value.
+\This{} extends Rust's reference-counting memory management system to prevent persistent memory
+leaks (in the absence of cycles) and multiple-frees.
+\This{} provides an additional guarantee that is necessary for persistent memory: It ensures that, by the end of the allocating transaction, the newly allocated persistent memory is reachable from some previous allocated persistent memory.  This ensures that crashes (which
+invalidate all volatile pointers) do not leak volatile memory.
+
+\begin{goaltrue}{goal:no-memory-leaks}
+
+\This{} adds three mechanisms Rust's reference counting mechanism to prevent memory leaks in acyclic persistent data structures.
+First, it extends Rust's reference counting mechanism to persistent memory:
+ First, the atomicity of memory allocations within a transaction prevents the
+creation of orphaned data if a transaction does not commit.  Second, the
+transaction cannot assign a newly-allocated PMEM region to a captured volatile
+variable (\nameref{inv:tx-no-volatile-mut}).  This prevents persistent data
+from being kept alive solely by a volatile reference.  Third, since the
+persistent pointers types are \csym{!TxOutSafe}, PMEM data cannot escape the
+transaction via the transaction's return value.
 
 As a result, the only way a new PMEM allocation can outlive the transaction is
 to become reachable from a region of persistent memory that was allocated
-in an earlier transaction.
+in an earlier transaction. 
 
 \cutforspace{\begin{invar}[Ref-Count-Works]
   \label{inv:refcount}
@@ -740,9 +743,9 @@ in an earlier transaction.
 \end{discuss}
 }
 
-\begin{goaltrue}{goal:no-memory-leaks}
+
   
-We begin by dividing \csym{P}'s allocatable space (i.e., excluding per-pool
+\ignore{We begin by dividing \csym{P}'s allocatable space (i.e., excluding per-pool
 metadata) into \emph{blocks}.  Every block is in one of two states:
 \emph{allocated} or \emph{free}.
 
@@ -790,6 +793,7 @@ variable.  Only persistent captured variables can be modified in a transaction
 \csym{A} cannot be an orphan since we assumed (inductively) that there were no
 orphans before the transaction started.  Therefore \csym{A} is reachable from
 the root and now so is \csym{B}.
+}
 
 \ignore{
   \textbf{Limitation:} \This{} inherences the memory leak problem of reference counting from Rust. A cyclic reference (in \csym{Prc} and \csym{Parc}) leads to memory leak as the number of references never reaches zero. Therefore, the Rust programmer should be more precautious to prevent reference cycles since the are permanent.
@@ -814,10 +818,10 @@ The thread's body is outside the transaction, so our invariant does not hold.
 To restore the invariant, \this{} makes \csym{Pbox} and \csym{Parc}
 \csym{!Send}.  This prevents their capture by a thread body.
 
-\nameref{goal:no-memory-leaks} only holds for acyclic data structures,
+\ignore{\nameref{goal:no-memory-leaks} only holds for acyclic data structures,
 since \csym{Parc} and \csym{Prc} use simple reference counts and cannot detect
 cycles.  If cycles exist, \this{} can leak memory although no more so than Rust
-itself can.
+itself can.}
 
 \ignore{Unfortunately, this prevents a thread from ever passing one of these types to
 another thread.  To rectify, this \csym{Parc} provides \cfunc{pack} method
