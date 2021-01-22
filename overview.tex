@@ -803,14 +803,14 @@ The argument above hinges on the invariant that a reference to orphaned memory
 cannot exist outside a transaction.  However, Rust's mechanism for spawning a
 new thread provides a potential escape.  Consider this example:
 
- \begin{lstlisting}
-   P::transaction(|j| {
-     let a = Parc::new(j, 42);
-     spawn(|k| {
-       let b = a;
-     });
-   });
- \end{lstlisting}
+\begin{lstlisting}
+  P::transaction(|j| {
+    let a = Parc::new(j, 42);
+    thread::spawn(|k| {
+      let b = a;
+    });
+  });
+\end{lstlisting}
 
 Rust's \csym{spawn} functions executes its argument (a lambda) in a new thread.
 In the code, \csym{a} is an orphan but the thread captures a reference to it.
@@ -860,7 +860,7 @@ When a pool initiates a transaction, it first checks whether it is called from a
 
 \subsection{Example}
 
-\reflst{lst:examples} implements \cfunc{append} for a persistent linked list in \this{}.  A \csym{Node} contains an integer and a link to the next \csym{Node}.  The link is of type \csym{PRefCell<Option<Pbox<Node,P>{>,P>}}, which might seem daunting, but this is typical for a Rust pointer declaration.  To break it down: \csym{PBox<Node, P>} is pointer to a \csym{Node} in pool \csym{P}.  \csym{Option<>} allows the pointer to be \csym{None}.  Wrapping the \csym{Option} in \csym{PRefCell} allows for modification via interior mutability.
+\reflst{lst:example} implements \cfunc{append} for a persistent linked list in \this{}.  A \csym{Node} contains an integer and a link to the next \csym{Node}.  The link is of type \csym{PRefCell<Option<Pbox<Node,P>{>,P>}}, which might seem daunting, but this is typical for a Rust pointer declaration.  To break it down: \csym{PBox<Node, P>} is pointer to a \csym{Node} in pool \csym{P}.  \csym{Option<>} allows the pointer to be \csym{None}.  Wrapping the \csym{Option} in \csym{PRefCell} allows for modification via interior mutability.
 
 The function \cfunc{append} recursively finds the end of the list, \csym{n} and adds a \csym{Node}.  \refl{ln:borrow} uses \cfunc{PRefCell::borrow\_mut} to get a mutable reference, \csym{t}, to the \csym{Option} object the \csym{PRefCell} contains. \refl{ln:match} uses Rust's \csym{match} construct to safely handle all possible values of \csym{t}: \csym{None} or \csym{Some}.  In the \csym{Some} (i.e., non-null) case, it binds the content of the \csym{Option} (which has type \csym{Node}) to \csym{succ}, and recursively calls \cfunc{append}.
 

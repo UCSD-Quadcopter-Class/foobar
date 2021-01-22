@@ -235,17 +235,16 @@ To measure the performance in both \this{} and PMDK, we use the linux provided t
 \begin{table}
   \center
   \footnotesize
-  \begin{tabular}{|l||c|c||c|c|}\hline
+  \begin{tabular}{|l||l|l||l|l|}\hline
     \input{microbench.table}
   \end{tabular}
-  \caption{\textbf{\This's basic operation latency and standard deviation} for durability and safety support measured on Intel's Optane DC and Battery-Backed DRAM, with 100K operations per test.
-  \steve{I measure a NOP and it returned  For all of the , I did it twice: one time measured all 100000 of them + vec::push}}
+  \caption{\textbf{\This's basic operation latency and standard deviation} for durability and safety support measured on Intel's Optane DC and Battery-Backed DRAM, with 100K operations per test.}
   \label{tab:microbench}
 \end{table}
 
 \subsubsection{Basic Operation Performance}
 
-\reftab{tab:microbench} reports the latency of basic operations along with the standard deviation measured on the platform described in \refsec{sec:res:platform}. To evaluate the impact of storage technology, we measure these operations on both Optane DC persistent memory and DRAM. The standard deviation (STD) shows how much we should expect the measured latency can vary.
+\reftab{tab:microbench} reports the latency of basic operations along with the standard deviation measured on the platform described in \refsec{sec:res:platform}. To evaluate the impact of storage technology, we measure these operations on both Optane DC persistent memory and DRAM. The standard deviation (STD) shows how much we should expect the measured latency can vary. Some of the items have a very small average latency, therefore we measure a batch of operations and calculate the average. These items have no STD values.
 
 To measure dereferencing operation latency, we use a \csym{Pbox<i32>}. Dereferencing a persistent pointer involves address translation and memory indirection. The Rust compiler uses CPU registers to cache the base and offset addresses. As a result, the dereferencing operation performs less than 1~ns, for both read and write. However, writing for the first time requires taking a log of data which takes around 565~ns.
 
