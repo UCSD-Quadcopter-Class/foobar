@@ -82,21 +82,6 @@ such a pointer is certain to be unsafe after a restart.
 the memory it contains.  This leaves any pointers from DRAM into the pool unsafe~\cite{nvheaps}.
 
 
-\subsection{Language Design for Persistence}
-\label{sec:pl}
-
-The requirements for persistent programming can be categorized into functionality and safety. The functionality requirements are the basic features that a programming language provides to enable using the persistent memory, such as allowing system calls to file operations and \mmap{} functions, and low-level implementation of cache flushing. Alternately, a PL can hide the functionalities using a persistent type abstraction.
-
-The safety features, on the other hand requires additional layers of evaluating the program and enforcing some safety rules either statically or dynamically. Code transformation is one of the common practices to enforce safety dynamically using transactional memory and undo logging~\cite{gopmem,atlas}. However, static checking for PM safety using transactional memory and undo logging requires some linguistic support for persistent data.
-
-Some PM programming tools add some compiler passes to instrument the code in order to add this support to the language~\cite{gopmem,atlas,autopersist,mnemosyne,oracle-nvm-direct}. Doing so requires maintaining the tool forever as the standard version of the compiler evolves. Other tools prefer using the available programming features of a language and human efforts to provide safety~\cite{pmdk}. We found the best practice to be using available PL with the following minimal features to provide PM safety statically:
-
-\begin{itemize}
-  \item \textbf{Type bounding}: Some data types, such as raw pointers, are unsafe to reside in the PM unless it is guaranteed that they point to the same memory region as they reside. Type bounding can filter out unsafe types in generics.
-  \item \textbf{Explicit dereferencing}: The PL should provide a feature to distinguish between reading and writing accesses. Only when an object is accessed mutably, it can be written onto. This is useful in taking an undo log before mutation.
-  \item \textbf{Type bounded $\lambda$-function}: Transactions should be able to accept closures as the failure-atomic operation, and capture only PM-safe types. Capturing variable unsafe variables may lead the program to an inconsistent state.
-  \item \textbf{Garbage collection}: Objects should either have a precise lifetime or be accurately garbage collected to avoid manual deallocation.
-\end{itemize}
 
 \subsection{Rust}
 \label{sec:rust}
@@ -337,3 +322,4 @@ To strongly reason about pointer aliasing, Rust disallows multiple mutable refer
 
 Rust enforces RAII (Resource Acquisition Is Initialization) that invokes the destructor of data when its owner goes out of scope before freeing the resources. Rust makes sure that all dependent objects are dropped prior to the object itself. This creates a finite chain of calls to the destructors and properly reclaiming the allocated memory. However, data is not really a dependent in pointer objects. Therefore, Rust provides \csym{Drop} trait that allows types performing more operations while being dropped. Using which, the pointer types can branch the dropping chain to include their referents too. More specifically, \csym{Box} always extends dropping to its pointee, while \csym{Rc} and \csym{Arc} do this only when they find no strong reference to the data. 
 }
+

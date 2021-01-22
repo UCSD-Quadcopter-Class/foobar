@@ -130,8 +130,8 @@ It achieves the following design goals:
 \begin{goal}[Tx-Are-Isolated]
   Transactions provide isolation so that updates are not visible until the transaction commits. \label{goal:atomic-is-isolated}
 \end{goal}
-\begin{goal}[No-Leaks]
-  Memory leaks and multiple frees are not possible. \label{goal:no-memory-leaks}
+\begin{goal}[No-Acyclic-Leaks]
+  Memory leaks in acyclic data structures are not possible. \label{goal:no-memory-leaks}
 \end{goal}
 %\begin{goal}[No-NV-to-V-Ptr]
 %  \This{} pools do not contain pointers to volaitle memory.  \label{goal:no-pool-to-dram-ptr}
@@ -504,31 +504,10 @@ First, accessing a pointer to a closed pool from within a transaction is not
 possible, since \cfunc{P::transaction} will \cfunc{panic!} if \csym{P} is
 closed.
 
-Second, outside a transaction any reference, \csym{A}, to persistent data
-(other than a \csym{VWeak}) must be reachable from the root of \csym{P}
-(\nameref{goal:no-memory-leaks}).  This means there is a chain of references
-from the root to \csym{A}, and the Rust borrow checking rules require that all
-those references are still in scope.  This includes the root pointer, whose
-liveness prevents \csym{P} from closing.
-
-\steve{Please read the following proof.}
-{\color{red}{\reflst{lst:lifetime} shows an example of how reachability is guaranteed.\\ 
-
-\noindent Proof:
-\begin{enumerate}
-  \item Persistent object can be created only inside a transaction, or be the root object.
-  \item No persistent object can be sent out of a transaction.
-  \item persistent objects can be referred by one another and live as long as the referrer is alive.
-  \item Therefore, all persistent objects outside a transaction are one of the following:
-  \begin{enumerate}
-    \item the root object, or
-    \item \label{i:ref} referred by the root object, or
-    \item \label{i:ref2} referred by a persistent object of category (\ref{i:ref}) or (\ref{i:ref2}).
-  \end{enumerate} 
-\end{enumerate}
-
-\noindent The problem is item (\ref{i:ref2}) which allows object A live as long as it refers to itself. This is a memory leak that we should resolve. It is notable that \csym{Pbox} does not have this problem.}}
-
+Second, consider a reference (other than \csym{VMWeak}, \csym{A}, that exists
+outside a transaction.  Rust's borrow checker requires that chain of in-scope
+references exists from the root to \csym{A}.  This includes the root pointer,
+whose liveness prevents \csym{P} from closing.
 
 Finally, \csym{VWeak} pointers from volatile memory into the pool can exist
 after the pool closes.  However, \cfunc{VWeak::promote} requires a journal
@@ -730,23 +709,25 @@ unavailable inside the transaction.
 \end{discuss}
 }
 
-\subsection{Atomic, Leak-Free Memory Allocation}
+\subsection{Memory Allocation}
 \label{sec:rev:alloc}
 
-\This{} provides both atomic and leak-free memory \steve{(Let's discuss)} allocation by preventing the
-creation of \emph{orphaned} memory.  A region of memory in pool \csym{P} is
-orphaned if it is allocated and not reachable from the pool's root.
-
-\This{} avoids the creation of orphans as a combined consequence of three
-invariants.  First, the atomicity of memory allocations within a transaction prevents the creation of
-orphans if a transaction does not commit.  Second, the transaction cannot
-assign a newly-allocated PMEM region to a captured volatile variable
-(\nameref{inv:tx-no-volatile-mut}).  Third, since the persistent pointers types
-are \csym{!TxOutSafe}, PMEM data cannot escape the transaction via the
-transaction's return value.
+\This{} extends Rust's reference-counting memory management system prevents memory
+leaks (in the absence of cycles) and multiple-frees.  The main difference between
+\this{}'s memory management scheme and Rust's is that \this{} ensures that newly allocated persistent memory is reachable from
+some previous allocated persistent memory.  This ensures that crashes (which
+invalidate all volatile pointers) do not leak memory.  \This{} uses three
+mechanisms to enforce this property.  First, the atomicity of memory
+allocations within a transaction prevents the creation of orphaned data if a
+transaction does not commit.  Second, the transaction cannot assign a
+newly-allocated PMEM region to a captured volatile variable
+(\nameref{inv:tx-no-volatile-mut}).  This prevents persistent data from being
+kept alive solely by a volatile reference.  Third, since the persistent
+pointers types are \csym{!TxOutSafe}, PMEM data cannot escape the transaction
+via the transaction's return value.
 
 As a result, the only way a new PMEM allocation can outlive the transaction is
-to have become reachable from a region of persistent memory that was allocated
+to become reachable from a region of persistent memory that was allocated
 in an earlier transaction.
 
 \cutforspace{\begin{invar}[Ref-Count-Works]
@@ -759,15 +740,16 @@ in an earlier transaction.
 \end{discuss}
 }
 
-\begin{goalparttrue}{goal:no-memory-leaks}
+\begin{goaltrue}{goal:no-memory-leaks}
   
 We begin by dividing \csym{P}'s allocatable space (i.e., excluding per-pool
 metadata) into \emph{blocks}.  Every block is in one of two states:
 \emph{allocated} or \emph{free}.
 
 A block, \emph{B} is \emph{reachable} from another block \emph{A}, if \emph{A}
-contains a \csym{Pbox}, \csym{Prc}, or \csym{Parc} that points to \emph{B} or another
-block, \emph{C} such that \emph{B} is reachable from \emph{C}.
+contains a \csym{Pbox}, \csym{Prc}, or \csym{Parc} that points to \emph{B} or
+another block, \emph{C} such that \emph{B} is reachable from \emph{C}.  Further
+assume there are no cycles among the pointer in \csym{P}.
 
 %\csym{P} is \emph{flawless} if the following condition holds for every block in \csym{P}:  The block is either 1) allocated and reachable from the the root of \csym{P} \emph{or} 2) free and not reachable from the root.  If a block violates this condition, then we say it is a \emph{flaw} or is \emph{flawed}.
 
@@ -813,7 +795,7 @@ the root and now so is \csym{B}.
   \textbf{Limitation:} \This{} inherences the memory leak problem of reference counting from Rust. A cyclic reference (in \csym{Prc} and \csym{Parc}) leads to memory leak as the number of references never reaches zero. Therefore, the Rust programmer should be more precautious to prevent reference cycles since the are permanent.
 }
 
-\cutforspace{The argument above hinges on the invariant that a reference to orphaned memory
+The argument above hinges on the invariant that a reference to orphaned memory
 cannot exist outside a transaction.  However, Rust's mechanism for spawning a
 new thread provides a potential escape.  Consider this example:
 
@@ -830,7 +812,12 @@ Rust's \csym{spawn} functions executes its argument (a lambda) in a new thread.
 In the code, \csym{a} is an orphan but the thread captures a reference to it.
 The thread's body is outside the transaction, so our invariant does not hold.
 To restore the invariant, \this{} makes \csym{Pbox} and \csym{Parc}
-\csym{!Send}.  This prevents their capture by a thread body.}
+\csym{!Send}.  This prevents their capture by a thread body.
+
+\nameref{goal:no-memory-leaks} only holds for acyclic data structures,
+since \csym{Parc} and \csym{Prc} use simple reference counts and cannot detect
+cycles.  If cycles exist, \this{} can leak memory although no more so than Rust
+itself can.
 
 \ignore{Unfortunately, this prevents a thread from ever passing one of these types to
 another thread.  To rectify, this \csym{Parc} provides \cfunc{pack} method
@@ -854,7 +841,7 @@ Using this mechanism, the above code becomes:}
    }) 
  \end{lstlisting}
 }
-\end{goalparttrue}
+\end{goaltrue}
 
 
 
@@ -898,7 +885,7 @@ Several aspects of the code are notable.  First, \csym{head} and \csym{n} are bo
 \label{sec:discuss}
 
 \This{}'s design statically prevents many but not all bugs that might occur in
-persistent programs.  The design decisions of Rust also impact \this{} design
+persistent programs.  The design decisions of Rust also impact \this{}'s design
 and place some limits on what it can achieve.
 
 \boldparagraph{Uncaught Bugs} \This{} aims to protect the programmer from
@@ -929,32 +916,15 @@ it went out of scope.
   \steve{It might not prevent the declaration, but by making the journal object to pass the transaction boundaries, it statically prevents initialization of such type.}
 }
 
-\This{} also cannot prevent invoking certain functions from a transaction. The resulting problem is that \cfunc{thread::spawn} may leak an unreachable \csym{Parc} when it is created inside a transaction and sent to a thread without being referenced by the root object. To prevent that, \this{} makes \csym{Parc::VWeak} \csym{Send} rather than \csym{Parc} itself, and dynamically enforces invoking \cfunc{Parc::demote} when there is no transaction running. One solution for statically preventing that would be to bound captured functions, so that transactions can reject \cfunc{thread::spawn} invocation.
+\boldparagraph{Threads in Transaction}
+\This{} goes through some contortions to make it safe to spawn a thread inside a
+transaction, since there is no way to restrict where thread spawning is
+possible.  The challenge is that \cfunc{thread::spawn} may leak an unreachable \csym{Parc} when called in a transaction.  To prevent this, \csym{Parc} is \csym{!Send}, which requires using \csym{Parc::VWeak} to pass persistent pointers to child threads, which is cumbersome.
 
-\cutforspace{\boldparagraph{Warts} \this{}'s ``rough edges'' trace themselves to aspects of
-Rust's design.  For instance, marking \csym{PBox} and \csym{Parc} as
-\csym{!Send} to make thread spawning inside transactions safe was not our first
-choice.  Spawning a thread in a transaction is rarely necessary and probably
-unwise, but Rust provides no means to prevent it, which would be preferable.}
-
-\boldparagraph{Other Languages} We chose Rust as the basis for \this{} after
-considering several alternatives.  C is notoriously unsafe.  Well-behaved C++ code
-is an improvement and NV-Heaps and the \csym{libpmemobj}'s C++ bindings demonstrate that C++
-smart pointers and lambdas can provide some of \this{}'s checks, but there are
-several significant gaps.  For instance, there is no way to limit the types a
-lambda can capture.
-
-Go~\cite{golang} emphasizes simplicity and go-pmem~\cite{gopmem} provides basic
-PMEM programming facilities.  However, Go does not allow smart pointers or
-provide a sufficiently expressive type system to statically enforce the
-invariants that \this{} provides.
-
-Pony~\cite{pony} is a new language with similar design goals to Rust.  For
-instance, it has a sophisticated notion of mutability and statically prevents
-data races, just as Rust does.  However, Pony is less mature and more complex
-than Rust.
-
-
+A solution would be to generalize Rust's ability to bound the variables that a
+transaction can capture to include functions.  We could then
+make \cfunc{thread::spawn} \csym{!TxInSafe} to prevent the transaction from
+calling it.
 
 \boldparagraph{Deadlock} \This{} does not prevent deadlock despite several
 demonstrations that this is possible in a TM
@@ -969,7 +939,61 @@ safe \this{}.  Ideally, \this{} could grow to include
 \csym{unsafe} facilities that allow for log-free programming without completely
 sacrificing its safety properties.
 
-\boldparagraph{No Cyclic Reference} Rust allows shared memory via \csym{Rc} and \csym{Arc} pointers which use reference counting for memory management. Similarly, \this{} implements reference counting for \csym{Prc} and \csym{Parc}. In this memory management model, when the number of references reaches down to zero, the memory is reclaimed. However, when there is a cycle in the reference chain, the reference counter never becomes zero, and the cyclic chain remain in memory forever. One solution can be integerating mark-and-sweep mechanism with reference counting to mark the dropped \csym{Prc}/\csym{Parc} objects and sweep the memory pool periodically or on-demand.
+\boldparagraph{Cyclic References} Like all reference-counting memory management systems, Rust (and \this{}) can leak memory in cyclic data structures.  The consequences are more severe for \this{}, since the memory is persistent.  Several solutions are possible (e.g., a more general garbage collection mechanism), but they would increase complexity, reduce performance, and create a mismatch between \this{}'s behavior and Rust's.
+
+\boldparagraph{Other Languages} We chose Rust as the basis for \this{} after
+considering several alternatives.  C is notoriously unsafe.  Well-behaved C++
+code is an improvement and NV-Heaps and the \csym{libpmemobj}'s C++ bindings
+demonstrate that C++ smart pointers and lambdas can provide some of \this{}'s
+checks, but there are several significant gaps.  For instance, there is no way
+to limit the types a lambda can capture.
+
+Go~\cite{golang} emphasizes simplicity and go-pmem~\cite{gopmem} provides basic
+PMEM programming facilities.  However, Go does not allow smart pointers or
+provide a sufficiently expressive type system to statically enforce the
+invariants that \this{} provides.
+
+Pony~\cite{pony} is a new language with similar design goals to Rust.  For
+instance, it has a sophisticated notion of mutability and statically prevents
+data races, just as Rust does.  However, Pony is less mature and more complex
+than Rust.
+
+\subsection{What is Essential and What Is Rust?}
+
+The biggest open question for \this{} is what aspects of its design (and our
+correctness argument) are byproducts of choosing Rust and which represent
+something more fundamental about persistent memory safety.
+
+For instance, \this{} is unique among PMEM libraries in separating code that
+modifies persistent state from code that modifies volatile state.  Our
+correctness argument relies on this property in several places, but it is not
+clear whether this is a fundamentally good idea for PMEM programming or simply
+something that was helpful in ensuring safety and implementable in Rust.
+
+It would be instructive to try to replicate \this{}'s functionality in another
+language.  C++ seems like the most likely mainstream candidate, since it has a flexible
+type system.  Simplying recreating \this{}'s approach in C++ would require
+first recreating the Rust memory safety guarantees that \this{} relies on.
+This seems challenging.  More illuminating would be to try to achieve the same
+goals using a more idiomatic C++ approach.  A comparison between the resulting
+system and \this{} would be revealing.
+
+\ignore{
+
+
+The requirements for persistent programming can be categorized into functionality and safety. The functionality requirements are the basic features that a programming language provides to enable using the persistent memory, such as allowing system calls to file operations and \mmap{} functions, and low-level implementation of cache flushing. Alternately, a PL can hide the functionalities using a persistent type abstraction.
+
+The safety features, on the other hand requires additional layers of evaluating the program and enforcing some safety rules either statically or dynamically. Code transformation is one of the common practices to enforce safety dynamically using transactional memory and undo logging~\cite{gopmem,atlas}. However, static checking for PM safety using transactional memory and undo logging requires some linguistic support for persistent data.
+
+Some PM programming tools add some compiler passes to instrument the code in order to add this support to the language~\cite{gopmem,atlas,autopersist,mnemosyne,oracle-nvm-direct}. Doing so requires maintaining the tool forever as the standard version of the compiler evolves. Other tools prefer using the available programming features of a language and human efforts to provide safety~\cite{pmdk}. We found the best practice to be using available PL with the following minimal features to provide PM safety statically:
+
+\begin{itemize}
+  \item \textbf{Type bounding}: Some data types, such as raw pointers, are unsafe to reside in the PM unless it is guaranteed that they point to the same memory region as they reside. Type bounding can filter out unsafe types in generics.
+  \item \textbf{Explicit dereferencing}: The PL should provide a feature to distinguish between reading and writing accesses. Only when an object is accessed mutably, it can be written onto. This is useful in taking an undo log before mutation.
+  \item \textbf{Type bounded $\lambda$-function}: Transactions should be able to accept closures as the failure-atomic operation, and capture only PM-safe types. Capturing variable unsafe variables may lead the program to an inconsistent state.
+  \item \textbf{Garbage collection}: Objects should either have a precise lifetime or be accurately garbage collected to avoid manual deallocation.
+\end{itemize}
+}
 
 %  \begin{enumerate}
 %\item Rust vs. Pony vs. Go vs. c++ vs. C -- other languages for systems programming

@@ -1,0 +1,27 @@
+\this{} type              &API                                              &Description \\\hline\hline
+\multicolumn{3}{|c|}{\textbf{PMEM Smart Pointers for Dynamic Allocation}}\\\hline\hline
+\csym{Pbox<T,P>}         &                                                 &Statically scoped, unshared pointer to PMEM.  Deallocates when it goes out of scope.\\
+                          &\csym{new(value: T, j: \&Journal<P>)}                             &Allocate PMEM in \csym{P} and initialize it.\\\hline
+\csym{Prc<T,P>}           &&Dynamic PMEM allocation with thread-unsafe reference counting.\\
+\csym{Parc<T,P>}         &                                                &Dynamic PMEM with thread-safe reference counting.\\
+&\csym{new(value: T, j: \&Journal<P>)}                             &Allocate PMEM in \csym{P} and initialize it.\\
+&\csym{pclone(j: \&Journal<P>)}&Create a new reference to the data.\\
+&\csym{downgrade()->PWeak}&Return a persistent weak (\csym{PWeak<T,P>}).\\
+&\csym{demote()->VWeak}&Return a volatile weak pointer (\csym{VWeak<T,P>}).\\\hline
+\csym{PWeak<T,P>}&\csym{upgrade(j: \&Journal<P>)->Prc/Parc}&Convert to a \csym{Option<Prc/Parc<T,P>{>}} if it is available\\\hline
+\csym{VWeak<T,P>}&\csym{promote(j: \&Journal<P>)->Prc/Parc}&Convert to a \csym{Option<Prc/Parc<T,P>{>}} if it is available\\\hline\hline
+\multicolumn{3}{|c|}{\textbf{PMEM Wrappers for Interior Mutability}}\\\hline\hline
+\csym{PCell<T,P>}        &                                                &Interior mutability via copying data to and from PMEM using \cfunc{get} and \cfunc{set} functions.\\
+%&\csym{new(value: T, j: \&Journal<P>)}                             &Create new instance on the stack and initialize it.\\
+%&\csym{get()}&Return the contents of the cell by value.\\
+%&\csym{set(value: T, j: \&Journal<P>)}&Set the contents of the cell by value.\\\hline
+\csym{PRefCell<T,P>}     &                                                &Interior mutability via references with dynamic borrow checking.\\
+&\csym{new(value: T, j: \&Journal<P>)}                             &Create new instance on the stack and initialize it.\\
+&\csym{borrow()}&Return an immutable reference to value it contains.\\
+&\csym{burrow\_mut(j: \&Journal<P>)}&Return a mutable reference object (\csym{RefMut}) for the value inside.\\\hline
+\csym{PMutex<T,P>}        &                                                &Thread-safe interior mutability via references.\\
+&\csym{new(value: T, j: \&Journal<P>)}                             &Create new instance on the stack and initialize it.\\
+&\csym{lock(j: \&Journal<P>)}&Lock and return a mutable reference (\csym{PMutexGuard}).\\\hline%\hline
+%\multicolumn{3}{|c|}{\textbf{Mutable Reference Types}}\\\hline\hline
+%\csym{PMutexGuard<'a, T: 'a, P>}&&Smart reference that provides interior mutability for \csym{PMutex}.\\\hline
+%\csym{RefMut<'a, T: 'a, P>}&&Smart reference that provides interior mutability for \csym{PRefCell}.\\\hline

@@ -1,0 +1,564 @@
+%%% -*-BibTeX-*-
+%%% Do NOT edit. File created by BibTeX with style
+%%% ACM-Reference-Format-Journals [18-Jan-2012].
+
+\begin{thebibliography}{39}
+
+%%% ====================================================================
+%%% NOTE TO THE USER: you can override these defaults by providing
+%%% customized versions of any of these macros before the \bibliography
+%%% command.  Each of them MUST provide its own final punctuation,
+%%% except for \shownote{}, \showDOI{}, and \showURL{}.  The latter two
+%%% do not use final punctuation, in order to avoid confusing it with
+%%% the Web address.
+%%%
+%%% To suppress output of a particular field, define its macro to expand
+%%% to an empty string, or better, \unskip, like this:
+%%%
+%%% \newcommand{\showDOI}[1]{\unskip}   % LaTeX syntax
+%%%
+%%% \def \showDOI #1{\unskip}           % plain TeX syntax
+%%%
+%%% ====================================================================
+
+\ifx \showCODEN    \undefined \def \showCODEN     #1{\unskip}     \fi
+\ifx \showDOI      \undefined \def \showDOI       #1{#1}\fi
+\ifx \showISBNx    \undefined \def \showISBNx     #1{\unskip}     \fi
+\ifx \showISBNxiii \undefined \def \showISBNxiii  #1{\unskip}     \fi
+\ifx \showISSN     \undefined \def \showISSN      #1{\unskip}     \fi
+\ifx \showLCCN     \undefined \def \showLCCN      #1{\unskip}     \fi
+\ifx \shownote     \undefined \def \shownote      #1{#1}          \fi
+\ifx \showarticletitle \undefined \def \showarticletitle #1{#1}   \fi
+\ifx \showURL      \undefined \def \showURL       {\relax}        \fi
+% The following commands are used for tagged output and should be
+% invisible to TeX
+\providecommand\bibfield[2]{#2}
+\providecommand\bibinfo[2]{#2}
+\providecommand\natexlab[1]{#1}
+\providecommand\showeprint[2][]{arXiv:#2}
+
+\bibitem[\protect\citeauthoryear{??}{gol}{[n.d.]}]%
+        {golang}
+ \bibinfo{year}{[n.d.]}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{The {Go} Programming Language}}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{??}{pon}{[n.d.]}]%
+        {pony}
+ \bibinfo{year}{[n.d.]}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Pony programming language}}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{??}{int}{2015}]%
+        {intel-pmemcheck}
+ \bibinfo{year}{2015}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{An introduction to pmemcheck}}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Alshboul, Tuck, and Solihin}{Alshboul
+  et~al\mbox{.}}{2018}]%
+        {lazypersist}
+\bibfield{author}{\bibinfo{person}{Mohammad Alshboul}, \bibinfo{person}{James
+  Tuck}, {and} \bibinfo{person}{Yan Solihin}.} \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Lazy persistency: A high-performing and
+  write-efficient software persistency technique}. In
+  \bibinfo{booktitle}{\emph{2018 ACM/IEEE 45th Annual International Symposium
+  on Computer Architecture (ISCA)}}. IEEE, \bibinfo{pages}{439--451}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Atkinson and Morrison}{Atkinson and
+  Morrison}{1995}]%
+        {atkinson1995orthogonally}
+\bibfield{author}{\bibinfo{person}{Malcolm Atkinson} {and}
+  \bibinfo{person}{Ronald Morrison}.} \bibinfo{year}{1995}\natexlab{}.
+\newblock \showarticletitle{Orthogonally persistent object systems}.
+\newblock \bibinfo{journal}{\emph{The VLDB Journal}} \bibinfo{volume}{4},
+  \bibinfo{number}{3} (\bibinfo{year}{1995}), \bibinfo{pages}{319--401}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Berger, Yang, Liu, and Novark}{Berger
+  et~al\mbox{.}}{2009}]%
+        {grace}
+\bibfield{author}{\bibinfo{person}{Emery~D Berger}, \bibinfo{person}{Ting
+  Yang}, \bibinfo{person}{Tongping Liu}, {and} \bibinfo{person}{Gene Novark}.}
+  \bibinfo{year}{2009}\natexlab{}.
+\newblock \showarticletitle{Grace: Safe multithreaded programming for C/C++}.
+  In \bibinfo{booktitle}{\emph{Proceedings of the 24th ACM SIGPLAN conference
+  on Object oriented programming systems languages and applications}}.
+  \bibinfo{pages}{81--96}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Bridge}{Bridge}{[n.d.]}]%
+        {personalbillbridge}
+\bibfield{author}{\bibinfo{person}{Bill Bridge}.}
+  \bibinfo{year}{[n.d.]}\natexlab{}.
+\newblock \bibinfo{howpublished}{personal communication}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Bridge}{Bridge}{2015}]%
+        {oracle-nvm-direct}
+\bibfield{author}{\bibinfo{person}{Bill Bridge}.}
+  \bibinfo{year}{2015}\natexlab{}.
+\newblock \bibinfo{title}{{NVM Support for C Applications}}.
+\newblock
+\newblock
+\newblock
+\shownote{Available at
+  \url{http://www.snia.org/sites/default/files/BillBridgeNVMSummit2015Slides.pdf}.}
+
+
+\bibitem[\protect\citeauthoryear{Chakrabarti, Boehm, and Bhandari}{Chakrabarti
+  et~al\mbox{.}}{2014}]%
+        {atlas}
+\bibfield{author}{\bibinfo{person}{Dhruva~R. Chakrabarti},
+  \bibinfo{person}{Hans-J. Boehm}, {and} \bibinfo{person}{Kumud Bhandari}.}
+  \bibinfo{year}{2014}\natexlab{}.
+\newblock \showarticletitle{Atlas: Leveraging Locks for Non-volatile Memory
+  Consistency}. In \bibinfo{booktitle}{\emph{Proceedings of the 2014 ACM
+  International Conference on Object Oriented Programming Systems Languages \&
+  Applications}} (Portland, Oregon, USA) \emph{(\bibinfo{series}{OOPSLA '14})}.
+  \bibinfo{publisher}{ACM}, \bibinfo{address}{New York, NY, USA},
+  \bibinfo{pages}{433--452}.
+\newblock
+\showISBNx{978-1-4503-2585-1}
+\urldef\tempurl%
+\url{https://doi.org/10.1145/2660193.2660224}
+\showDOI{\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Chatzistergiou, Cintra, and
+  Viglas}{Chatzistergiou et~al\mbox{.}}{2015}]%
+        {rewind}
+\bibfield{author}{\bibinfo{person}{Andreas Chatzistergiou},
+  \bibinfo{person}{Marcelo Cintra}, {and} \bibinfo{person}{Stratis~D Viglas}.}
+  \bibinfo{year}{2015}\natexlab{}.
+\newblock \showarticletitle{Rewind: Recovery write-ahead system for in-memory
+  non-volatile data-structures}.
+\newblock \bibinfo{journal}{\emph{Proceedings of the VLDB Endowment}}
+  \bibinfo{volume}{8}, \bibinfo{number}{5} (\bibinfo{year}{2015}),
+  \bibinfo{pages}{497--508}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Coburn, Caulfield, Akel, Grupp, Gupta, Jhala,
+  and Swanson}{Coburn et~al\mbox{.}}{2011}]%
+        {nvheaps}
+\bibfield{author}{\bibinfo{person}{Joel Coburn}, \bibinfo{person}{Adrian~M.
+  Caulfield}, \bibinfo{person}{Ameen Akel}, \bibinfo{person}{Laura~M. Grupp},
+  \bibinfo{person}{Rajesh~K. Gupta}, \bibinfo{person}{Ranjit Jhala}, {and}
+  \bibinfo{person}{Steven Swanson}.} \bibinfo{year}{2011}\natexlab{}.
+\newblock \showarticletitle{{NV-Heaps}: Making Persistent Objects Fast and Safe
+  with Next-generation, Non-volatile Memories}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the Sixteenth International
+  Conference on Architectural Support for Programming Languages and Operating
+  Systems}} (Newport Beach, California, USA) \emph{(\bibinfo{series}{ASPLOS
+  '11})}. \bibinfo{publisher}{ACM}, \bibinfo{address}{New York, NY, USA},
+  \bibinfo{pages}{105--118}.
+\newblock
+\showISBNx{978-1-4503-0266-1}
+\urldef\tempurl%
+\url{https://doi.org/10.1145/1950365.1950380}
+\showDOI{\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Cohen, Aksun, and Larus}{Cohen
+  et~al\mbox{.}}{2018}]%
+        {cohen2018object}
+\bibfield{author}{\bibinfo{person}{Nachshon Cohen}, \bibinfo{person}{David~T
+  Aksun}, {and} \bibinfo{person}{James~R Larus}.}
+  \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Object-oriented recovery for non-volatile memory}.
+\newblock \bibinfo{journal}{\emph{Proceedings of the ACM on Programming
+  Languages}} \bibinfo{volume}{2}, \bibinfo{number}{OOPSLA}
+  (\bibinfo{year}{2018}), \bibinfo{pages}{1--22}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Dulloor, Kumar, Keshavamurthy, Lantz, Reddy,
+  Sankaran, and Jackson}{Dulloor et~al\mbox{.}}{2014}]%
+        {pmfs}
+\bibfield{author}{\bibinfo{person}{Subramanya~R. Dulloor},
+  \bibinfo{person}{Sanjay Kumar}, \bibinfo{person}{Anil Keshavamurthy},
+  \bibinfo{person}{Philip Lantz}, \bibinfo{person}{Dheeraj Reddy},
+  \bibinfo{person}{Rajesh Sankaran}, {and} \bibinfo{person}{Jeff Jackson}.}
+  \bibinfo{year}{2014}\natexlab{}.
+\newblock \showarticletitle{{System Software for Persistent Memory}}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the Ninth European Conference on
+  Computer Systems}} (Amsterdam, The Netherlands)
+  \emph{(\bibinfo{series}{EuroSys '14})}. \bibinfo{publisher}{ACM},
+  \bibinfo{address}{New York, NY, USA}, Article \bibinfo{articleno}{15},
+  \bibinfo{numpages}{15}~pages.
+\newblock
+\showISBNx{978-1-4503-2704-6}
+\urldef\tempurl%
+\url{https://doi.org/10.1145/2592798.2592814}
+\showDOI{\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{George, Verma, Venkatasubramanian, and
+  Subrahmanyam}{George et~al\mbox{.}}{2020}]%
+        {gopmem}
+\bibfield{author}{\bibinfo{person}{Jerrin~Shaji George}, \bibinfo{person}{Mohit
+  Verma}, \bibinfo{person}{Rajesh Venkatasubramanian}, {and}
+  \bibinfo{person}{Pratap Subrahmanyam}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{go-pmem: Native Support for Programming Persistent
+  Memory in Go}. In \bibinfo{booktitle}{\emph{2020 {USENIX} Annual Technical
+  Conference ({USENIX ATC} 20)}}. \bibinfo{pages}{859--872}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Gramoli, Guerraoui, and Trigonakis}{Gramoli
+  et~al\mbox{.}}{2012}]%
+        {tm2c}
+\bibfield{author}{\bibinfo{person}{Vincent Gramoli}, \bibinfo{person}{Rachid
+  Guerraoui}, {and} \bibinfo{person}{Vasileios Trigonakis}.}
+  \bibinfo{year}{2012}\natexlab{}.
+\newblock \showarticletitle{TM2C: a software transactional memory for
+  many-cores}. In \bibinfo{booktitle}{\emph{Proceedings of the 7th ACM european
+  conference on Computer Systems}}. \bibinfo{pages}{351--364}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Gu, Yu, Wang, Wang, Zang, Guan, and Chen}{Gu
+  et~al\mbox{.}}{2019}]%
+        {pisces}
+\bibfield{author}{\bibinfo{person}{Jinyu Gu}, \bibinfo{person}{Qianqian Yu},
+  \bibinfo{person}{Xiayang Wang}, \bibinfo{person}{Zhaoguo Wang},
+  \bibinfo{person}{Binyu Zang}, \bibinfo{person}{Haibing Guan}, {and}
+  \bibinfo{person}{Haibo Chen}.} \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{Pisces: A Scalable and Efficient Persistent
+  Transactional Memory}. In \bibinfo{booktitle}{\emph{2019 {USENIX} Annual
+  Technical Conference ({USENIX} {ATC} 19)}}. \bibinfo{publisher}{{USENIX}
+  Association}, \bibinfo{address}{Renton, WA}, \bibinfo{pages}{913--928}.
+\newblock
+\showISBNx{978-1-939133-03-8}
+\urldef\tempurl%
+\url{https://www.usenix.org/conference/atc19/presentation/gu}
+\showURL{%
+\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Jeong, Park, Huh, and Maeng}{Jeong
+  et~al\mbox{.}}{2018}]%
+        {jeong2018efficient}
+\bibfield{author}{\bibinfo{person}{Jungi Jeong}, \bibinfo{person}{Chang~Hyun
+  Park}, \bibinfo{person}{Jaehyuk Huh}, {and} \bibinfo{person}{Seungryoul
+  Maeng}.} \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Efficient hardware-assisted logging with
+  asynchronous and direct-update for persistent memory}. In
+  \bibinfo{booktitle}{\emph{2018 51st Annual IEEE/ACM International Symposium
+  on Microarchitecture (MICRO)}}. IEEE, \bibinfo{pages}{520--532}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Kim, Moon, Song, Park, and Noh}{Kim
+  et~al\mbox{.}}{2020}]%
+        {usnap}
+\bibfield{author}{\bibinfo{person}{J.~Hyun Kim}, \bibinfo{person}{Young~Je
+  Moon}, \bibinfo{person}{Hyunsub Song}, \bibinfo{person}{Jay~H. Park}, {and}
+  \bibinfo{person}{Sam~H. Noh}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{On Providing OS Support to Allow Transparent Use of
+  Traditional Programming Models for Persistent Memory}.
+\newblock \bibinfo{journal}{\emph{J. Emerg. Technol. Comput. Syst.}}
+  \bibinfo{volume}{16}, \bibinfo{number}{3}, Article \bibinfo{articleno}{33}
+  (\bibinfo{date}{June} \bibinfo{year}{2020}), \bibinfo{numpages}{24}~pages.
+\newblock
+\showISSN{1550-4832}
+\urldef\tempurl%
+\url{https://doi.org/10.1145/3388637}
+\showDOI{\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Klabnik and Nichols}{Klabnik and
+  Nichols}{[n.d.]}]%
+        {rustbook}
+\bibfield{author}{\bibinfo{person}{Steve Klabnik} {and} \bibinfo{person}{Carol
+  Nichols}.} \bibinfo{year}{[n.d.]}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{The Rust Programming Language}}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Lantz, Dulloor, Kumar, Sankaran, and
+  Jackson}{Lantz et~al\mbox{.}}{2014}]%
+        {lantz2014yat}
+\bibfield{author}{\bibinfo{person}{Philip Lantz}, \bibinfo{person}{Subramanya
+  Dulloor}, \bibinfo{person}{Sanjay Kumar}, \bibinfo{person}{Rajesh Sankaran},
+  {and} \bibinfo{person}{Jeff Jackson}.} \bibinfo{year}{2014}\natexlab{}.
+\newblock \showarticletitle{{Yat: A Validation Framework for Persistent Memory
+  Software}}. In \bibinfo{booktitle}{\emph{USENIX Annual Technical Conference
+  (ATC)}}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Liu, Izraelevitz, Lee, Scott, Noh, and
+  Jung}{Liu et~al\mbox{.}}{2018}]%
+        {ido}
+\bibfield{author}{\bibinfo{person}{Qingrui Liu}, \bibinfo{person}{Joseph
+  Izraelevitz}, \bibinfo{person}{Se~Kwon Lee}, \bibinfo{person}{Michael~L
+  Scott}, \bibinfo{person}{Sam~H Noh}, {and} \bibinfo{person}{Changhee Jung}.}
+  \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{iDO: Compiler-directed failure atomicity for
+  nonvolatile memory}. In \bibinfo{booktitle}{\emph{2018 51st Annual IEEE/ACM
+  International Symposium on Microarchitecture (MICRO)}}. IEEE,
+  \bibinfo{pages}{258--270}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Liu, Seemakhupt, Pekhimenko, Kolli, and
+  Khan}{Liu et~al\mbox{.}}{2019a}]%
+        {janus}
+\bibfield{author}{\bibinfo{person}{Sihang Liu}, \bibinfo{person}{Korakit
+  Seemakhupt}, \bibinfo{person}{Gennady Pekhimenko}, \bibinfo{person}{Aasheesh
+  Kolli}, {and} \bibinfo{person}{Samira Khan}.}
+  \bibinfo{year}{2019}\natexlab{a}.
+\newblock \showarticletitle{Janus: Optimizing Memory and Storage Support for
+  Non-Volatile Memory Systems}. In \bibinfo{booktitle}{\emph{Proceedings of the
+  46th International Symposium on Computer Architecture}} (Phoenix, Arizona)
+  \emph{(\bibinfo{series}{ISCA '19})}. \bibinfo{publisher}{Association for
+  Computing Machinery}, \bibinfo{address}{New York, NY, USA},
+  \bibinfo{pages}{143–156}.
+\newblock
+\showISBNx{9781450366694}
+\urldef\tempurl%
+\url{https://doi.org/10.1145/3307650.3322206}
+\showDOI{\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Liu, Seemakhupt, Wei, Wenisch, Kolli, and
+  Khan}{Liu et~al\mbox{.}}{2020}]%
+        {xfdetector}
+\bibfield{author}{\bibinfo{person}{Sihang Liu}, \bibinfo{person}{Korakit
+  Seemakhupt}, \bibinfo{person}{Yizhou Wei}, \bibinfo{person}{Thomas Wenisch},
+  \bibinfo{person}{Aasheesh Kolli}, {and} \bibinfo{person}{Samira Khan}.}
+  \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Cross-Failure Bug Detection in Persistent Memory
+  Programs}. In \bibinfo{booktitle}{\emph{Proceedings of the Twenty-Fifth
+  International Conference on Architectural Support for Programming Languages
+  and Operating Systems}}. \bibinfo{pages}{1187--1202}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Liu, Wei, Zhao, Kolli, and Khan}{Liu
+  et~al\mbox{.}}{2019b}]%
+        {pmtest}
+\bibfield{author}{\bibinfo{person}{Sihang Liu}, \bibinfo{person}{Yizhou Wei},
+  \bibinfo{person}{Jishen Zhao}, \bibinfo{person}{Aasheesh Kolli}, {and}
+  \bibinfo{person}{Samira Khan}.} \bibinfo{year}{2019}\natexlab{b}.
+\newblock \showarticletitle{PMTest: A fast and flexible testing framework for
+  persistent memory programs}. In \bibinfo{booktitle}{\emph{Proceedings of the
+  Twenty-Fourth International Conference on Architectural Support for
+  Programming Languages and Operating Systems}}. \bibinfo{pages}{411--425}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Marmol, Chowdhury, and Rangaswami}{Marmol
+  et~al\mbox{.}}{2018}]%
+        {libpm}
+\bibfield{author}{\bibinfo{person}{Leonardo Marmol}, \bibinfo{person}{Mohammad
+  Chowdhury}, {and} \bibinfo{person}{Raju Rangaswami}.}
+  \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{{PM: Simplifying Application Usage of Persistent
+  Memory}}.
+\newblock \bibinfo{journal}{\emph{ACM Trans. Storage}} \bibinfo{volume}{14},
+  \bibinfo{number}{4}, Article \bibinfo{articleno}{34} (\bibinfo{date}{Dec.}
+  \bibinfo{year}{2018}), \bibinfo{numpages}{18}~pages.
+\newblock
+\showISSN{1553-3077}
+\urldef\tempurl%
+\url{https://doi.org/10.1145/3278141}
+\showDOI{\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Memaripour, Izraelevitz, and
+  Swanson}{Memaripour et~al\mbox{.}}{2020}]%
+        {pronto}
+\bibfield{author}{\bibinfo{person}{Amirsaman Memaripour},
+  \bibinfo{person}{Joseph Izraelevitz}, {and} \bibinfo{person}{Steven
+  Swanson}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Pronto: Easy and Fast Persistence for Volatile Data
+  Structures}. In \bibinfo{booktitle}{\emph{Proceedings of the Twenty-Fifth
+  International Conference on Architectural Support for Programming Languages
+  and Operating Systems}}. \bibinfo{pages}{789--806}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Micron}{Micron}{2017}]%
+        {3DXPoint}
+\bibfield{author}{\bibinfo{person}{Micron}.} \bibinfo{year}{2017}\natexlab{}.
+\newblock \bibinfo{title}{{3D XPoint Technology}}.
+\newblock
+\newblock
+\newblock
+\shownote{\url{http://www.micron.com/products/advanced-solutions/3d-xpoint-technology}.}
+
+
+\bibitem[\protect\citeauthoryear{Mohan, Haderle, Lindsay, Pirahesh, and
+  Schwarz}{Mohan et~al\mbox{.}}{1992}]%
+        {aries}
+\bibfield{author}{\bibinfo{person}{C. Mohan}, \bibinfo{person}{Don Haderle},
+  \bibinfo{person}{Bruce Lindsay}, \bibinfo{person}{Hamid Pirahesh}, {and}
+  \bibinfo{person}{Peter Schwarz}.} \bibinfo{year}{1992}\natexlab{}.
+\newblock \showarticletitle{{ARIES: A Transaction Recovery Method Supporting
+  Fine-granularity Locking and Partial Rollbacks Using Write-ahead Logging}}.
+\newblock \bibinfo{journal}{\emph{ACM Trans. Database Syst.}}
+  \bibinfo{volume}{17}, \bibinfo{number}{1} (\bibinfo{year}{1992}),
+  \bibinfo{pages}{94--162}.
+\newblock
+\showISSN{0362-5915}
+\urldef\tempurl%
+\url{https://doi.org/10.1145/128765.128770}
+\showDOI{\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Ogleari, Miller, and Zhao}{Ogleari
+  et~al\mbox{.}}{2018}]%
+        {ogleari2018steal}
+\bibfield{author}{\bibinfo{person}{Matheus~Almeida Ogleari},
+  \bibinfo{person}{Ethan~L Miller}, {and} \bibinfo{person}{Jishen Zhao}.}
+  \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Steal but no force: Efficient hardware undo+ redo
+  logging for persistent memory systems}. In \bibinfo{booktitle}{\emph{2018
+  IEEE International Symposium on High Performance Computer Architecture
+  (HPCA)}}. IEEE, \bibinfo{pages}{336--349}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Oleary}{Oleary}{2018}]%
+        {intel-inspector}
+\bibfield{author}{\bibinfo{person}{Kevin Oleary}.}
+  \bibinfo{year}{2018}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{How to detect persistent memory programming
+  errors using Intel Inspector - Persistence Inspector}}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Oukid, Booss, Lespinasse, and Lehner}{Oukid
+  et~al\mbox{.}}{2016}]%
+        {oukid2016testing}
+\bibfield{author}{\bibinfo{person}{Ismail Oukid}, \bibinfo{person}{Daniel
+  Booss}, \bibinfo{person}{Adrien Lespinasse}, {and} \bibinfo{person}{Wolfgang
+  Lehner}.} \bibinfo{year}{2016}\natexlab{}.
+\newblock \showarticletitle{On testing persistent-memory-based software}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the 12th International Workshop on
+  Data Management on New Hardware}}. \bibinfo{pages}{1--7}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Pankratius and Adl-Tabatabai}{Pankratius and
+  Adl-Tabatabai}{2014}]%
+        {stmlock}
+\bibfield{author}{\bibinfo{person}{Victor Pankratius} {and}
+  \bibinfo{person}{Ali-Reza Adl-Tabatabai}.} \bibinfo{year}{2014}\natexlab{}.
+\newblock \showarticletitle{Software engineering with transactional memory
+  versus locks in practice}.
+\newblock \bibinfo{journal}{\emph{Theory of Computing Systems}}
+  \bibinfo{volume}{55}, \bibinfo{number}{3} (\bibinfo{year}{2014}),
+  \bibinfo{pages}{555--590}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{pmem.io}{pmem.io}{2017}]%
+        {pmdk}
+\bibfield{author}{\bibinfo{person}{pmem.io}.} \bibinfo{year}{2017}\natexlab{}.
+\newblock \bibinfo{title}{{Persistent Memory Development Kit}}.
+\newblock
+\newblock
+\newblock
+\shownote{\url{http://pmem.io/pmdk}.}
+
+
+\bibitem[\protect\citeauthoryear{Shull, Huang, and Torrellas}{Shull
+  et~al\mbox{.}}{2019}]%
+        {autopersist}
+\bibfield{author}{\bibinfo{person}{Thomas Shull}, \bibinfo{person}{Jian Huang},
+  {and} \bibinfo{person}{Josep Torrellas}.} \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{AutoPersist: An Easy-to-Use Java NVM Framework
+  Based on Reachability}. In \bibinfo{booktitle}{\emph{Proceedings of the 40th
+  ACM SIGPLAN Conference on Programming Language Design and Implementation}}
+  (Phoenix, AZ, USA) \emph{(\bibinfo{series}{PLDI 2019})}.
+  \bibinfo{publisher}{Association for Computing Machinery},
+  \bibinfo{address}{New York, NY, USA}, \bibinfo{pages}{316–332}.
+\newblock
+\showISBNx{9781450367127}
+\urldef\tempurl%
+\url{https://doi.org/10.1145/3314221.3314608}
+\showDOI{\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{stack overflow}{stack overflow}{[n.d.]}]%
+        {mostloved}
+stack overflow \bibinfo{year}{[n.d.]}\natexlab{}.
+\newblock
+\newblock
+\urldef\tempurl%
+\url{https://insights.stackoverflow.com/survey/2019#most-loved-dreaded-and-wanted}
+\showURL{%
+\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Volos, Tack, and Swift}{Volos
+  et~al\mbox{.}}{2011}]%
+        {mnemosyne}
+\bibfield{author}{\bibinfo{person}{Haris Volos}, \bibinfo{person}{Andres~Jaan
+  Tack}, {and} \bibinfo{person}{Michael~M. Swift}.}
+  \bibinfo{year}{2011}\natexlab{}.
+\newblock \showarticletitle{Mnemosyne: Lightweight Persistent Memory}. In
+  \bibinfo{booktitle}{\emph{ASPLOS '11: Proceeding of the 16th International
+  Conference on Architectural Support for Programming Languages and Operating
+  Systems}} (Newport Beach, California, USA). \bibinfo{publisher}{ACM},
+  \bibinfo{address}{New York, NY, USA}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Xu, Ye, Solihin, and Shen}{Xu
+  et~al\mbox{.}}{2020}]%
+        {xu2020hardware}
+\bibfield{author}{\bibinfo{person}{Yuanchao Xu}, \bibinfo{person}{ChenCheng
+  Ye}, \bibinfo{person}{Yan Solihin}, {and} \bibinfo{person}{Xipeng Shen}.}
+  \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Hardware-Based Domain Virtualization for
+  Intra-Process Isolation of Persistent Memory Objects}. In
+  \bibinfo{booktitle}{\emph{2020 ACM/IEEE 47th Annual International Symposium
+  on Computer Architecture (ISCA)}}. IEEE, \bibinfo{pages}{680--692}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Yu, Zuo, and Zhao}{Yu et~al\mbox{.}}{2020}]%
+        {convoider}
+\bibfield{author}{\bibinfo{person}{Zhen Yu}, \bibinfo{person}{Yu Zuo}, {and}
+  \bibinfo{person}{Yong Zhao}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Convoider: A Concurrency Bug Avoider Based on
+  Transparent Software Transactional Memory}.
+\newblock \bibinfo{journal}{\emph{International Journal of Parallel
+  Programming}} \bibinfo{volume}{48}, \bibinfo{number}{1}
+  (\bibinfo{year}{2020}), \bibinfo{pages}{32--60}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Zhao, Li, Yoon, Xie, and Jouppi}{Zhao
+  et~al\mbox{.}}{2013}]%
+        {Kiln}
+\bibfield{author}{\bibinfo{person}{Jishen Zhao}, \bibinfo{person}{Sheng Li},
+  \bibinfo{person}{Doe~Hyun Yoon}, \bibinfo{person}{Yuan Xie}, {and}
+  \bibinfo{person}{Norman~P. Jouppi}.} \bibinfo{year}{2013}\natexlab{}.
+\newblock \showarticletitle{Kiln: Closing the Performance Gap Between Systems
+  With and Without Persistence Support}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the 46th Annual IEEE/ACM
+  International Symposium on Microarchitecture}} (Davis, California)
+  \emph{(\bibinfo{series}{MICRO-46})}. \bibinfo{publisher}{ACM},
+  \bibinfo{address}{New York, NY, USA}, \bibinfo{pages}{421--432}.
+\newblock
+\showISBNx{978-1-4503-2638-4}
+\urldef\tempurl%
+\url{https://doi.org/10.1145/2540708.2540744}
+\showDOI{\tempurl}
+
+
+\end{thebibliography}

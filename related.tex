@@ -38,15 +38,37 @@ NVM Direct~\cite{oracle-nvm-direct} adds extensions to C/C++ via a custom compil
 
 \subsection{Orthogonal Persistence}
 
-Orthogonal persistence is a principle for programmability enhancement historically developed for databases which may yield an imperfect implementation of persistent data in terms of performance in persistent programming. To follow orthogonal persistence, the persistence abstraction should allow the creation and manipulation of data in an identical manner, regardless of its lifetime Thereby the persistent view of information is integrated with the programming language view~\cite{atkinson1995orthogonally}. 
-None of the mentioned libraries in this paper provides orthogonal persistence.
+The fundamentals of persistent programming have been studied for many years,
+and the notion of orthogonal persistence has been proposed as a guiding
+principle in PMEM software design~\cite{atkinson1995orthogonally}.  The
+principle holds that the persistence abstraction should allow the creation and
+manipulation of data in an identical manner , regardless of its
+(non)persistence -- that is that persistence should be \emph{orthogonal} to
+other aspects of the language.
 
-Following orthogonal persistence principle, Atlas~\cite{atlas} integrates failure-atomicity with thread-safety, and provides an identical view for manipulating both volatile and persistent data using locks. However, the creation of persistent data is different from volatile data.
 
-Similarly, go-pmem~\cite{gopmem} uses native pointers to provide persistent programming in Go~\cite{golang}. Although it uses native pointers, it requires the programmer to use transactions in order to enhance the performance.
+Despite the attractivensess of orthogonal persistence, \this{} and other
+recently-proposed system are not orthogonally persistent.  We made this design
+decision in \this{} because all three principles of orthogonal persistence~\cite{atkinson1995orthogonally} face practical
+problems, especially with respect to performance, system complexity, and
+consistency.  First, “persistence independence” (i.e., using the same code for
+transient and persistent data) is slow and/or complicated, especially in
+low-level language like Rust. Persistent operations require different (and
+slower) instructions than operations on transient data, and an orthogonal
+system would require a runtime mechanism to choose which version to run or
+would need to always run the slow persistent code.  Either choice will hurt
+performance.  Second, “data type orthogonality” (i.e., any data type can be persistent) leads to consistency problems
+since some types (e.g., network sockets or file handles) are inherently
+transient. The final principle of “persistence identification” (i.e., not
+expressing persistence in the type system) leads to complications in systems
+with multiple pools of persistent memory, since the question is not “transient
+or persistent” but “transient and, if not, in which pool”.  Without type
+information, it seems very challenging to statically prevent the creation of
+inter-pool pointers as Corundum does.
 
-\This{} targets safety with minimal performance overhead, so it may slightly sacrifice programmability in some senses. To make data type orthogonal to persistence, we need compiler-level passes to add dynamic checks such as persistence identification, many of which, such as network sockets and thread handles, are inherently transient. Rather than this, we allow only \csym{PSafe} types to reside in PMEM, and enforce a transactional interface for data manipulation.
-
+Furthermore, when orthogonal persistence was first formulated, persistence
+required a disk, so the performance cost of orthogonality was not an issue.
+For persistent memory, those costs would be prohibitive.
 
 %are two of the first PM libraries that offer a safe programming environment by enforcing some invariants statically. NV-Heaps also uses reference counting for garbage collection while it should be done manually in Mnemosyne. Although many of the invariants hold statically, checking that data is PM safe is a loophole in both of them. Also, the pool isolation check happens in the runtime, and the safety of V-to-NV pointers is not fully guaranteed.
 
