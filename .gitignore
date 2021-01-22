@@ -36,3 +36,4 @@ libpaper_metadata.tex
 paper.docx
 paper.txt
 data/raw
+*.fdb_latexmk

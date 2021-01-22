@@ -1,5 +1,5 @@
 PDF_TARGETS = paper.pdf
-include libpaper/Make.rules
+-include libpaper/Make.rules
 LIBPAPER ?=../libpaper
 .PHONY: setup
 setup: 
