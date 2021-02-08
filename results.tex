@@ -44,6 +44,7 @@ performance with \csym{unsafe}.
   \caption{Adding persistence to data structures with \this{} requires fewer
     changes (measured in lines of code) than PMDK.}
   \label{tab:loc}
+  \vspace{-0.5cm}
 \end{table}
 
 \subsection{Ease of Use}
@@ -238,7 +239,7 @@ To measure the performance in both \this{} and PMDK, we use the linux provided t
   \begin{tabular}{|l||l|l||l|l|}\hline
     \input{microbench.table}
   \end{tabular}
-  \caption{\textbf{\This's basic operation latency and standard deviation} for durability and safety support measured on Intel's Optane DC and Battery-Backed DRAM, with 100K operations per test.}
+  \caption{\textbf{\This's basic operation latency and standard deviation} for durability and safety support measured on Intel's Optane DC and Battery-Backed DRAM, with 50K operations per test.}
   \label{tab:microbench}
 \end{table}
 
@@ -252,7 +253,7 @@ For memory allocation, \This{} uses buddy-blocks algorithm which performs small 
 
 \This{} keeps a journal object in the PM per thread with at list one page of 64 log slots. Therefore, running an empty transaction (TxNop) does not write to the PM. The roughly similar latency in PM and DRAM in \reftab{tab:microbench} confirms this. DataLog shows the latency of taking an undo log for a data with 8~B, 2~kB, and 32~kB sizes. It requires allocating memory and copying data to the log location. Therefore, the larger the data, the slower the operation, due to the allocation process. However, creating a DropLog which only keeps the information of allocation has a fixed size, and takes constant time.
 
-The \cfunc{pclone} method in \csym{Pbox} creates a new instance of \csym{Pbox} by allocating and copying data to a new location. Therefore, the latency of \csym{Pbox::clone} is the aggregation of PM allocation and \memcpy{}. However, \csym{Prc} and \csym{Parc} do not allocate memory. They only update their reference counters transactionally. \csym{Parc} uses atomic counters which explains its longer latency compared with \csym{Prc}. The \cfunc{downgrade} and \cfunc{upgrade} function also transactionally update the counters and we can use the same explanation as for \cfunc{pclone}. Although the \cfunc{demote} function use similar mechanism as \cfunc{downgrade} to create volatile weak pointer, they additionally update a reference list in \csym{Prc}/\csym{Parc} which makes them slower. However, the latency of \cfunc{promote} is similar to \cfunc{upgrade} because they perform the same operation.
+The \cfunc{pclone} method in \csym{Pbox} creates a new instance of \csym{Pbox} by allocating and copying data to a new location. Therefore, the latency of \csym{Pbox::clone} is the aggregation of PM allocation and \memcpy{}. However, \csym{Prc} and \csym{Parc} do not allocate memory. They only update their reference counters transactionally. \csym{Parc} uses atomic counters and take a log every time it counts to provide crash-consistency which explains its longer latency compared with \csym{Prc}. The \cfunc{downgrade} and \cfunc{upgrade} function also transactionally update the counters and we can use the same explanation as for \cfunc{pclone}. Although the \cfunc{demote} function use similar mechanism as \cfunc{downgrade} to create volatile weak pointer, they additionally update a reference list in \csym{Prc}/\csym{Parc} which makes them slower. However, the latency of \cfunc{promote} is similar to \cfunc{upgrade} because they perform the same operation.
 
 \subsubsection{Workloads}
 \label{sec:res:perf:workload}

@@ -1,6 +1,6 @@
 \begin{lstfloat}
   \begin{lstlisting}[escapechar=\@]
-#[Root]
+#[derive(Root)]
 struct Node {
   val: i32,
   next: PRefCell<Option<Pbox<Node,P>@@>,P>

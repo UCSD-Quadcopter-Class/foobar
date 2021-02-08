@@ -21,13 +21,13 @@ experiments and reproduce the results as they appear in the \refsec{sec:results}
 {\small
 \begin{itemize}
   \item {\bf Program: } Corundum library and its unit tests, Rust, Cargo, PMDK v1.8. Input files for the experiments are included (74~MB).
-  \item {\bf Compilation: } Rust 1.50.0-nightly (publicly available), GNU C++11, CMake $>=$ 3.3 
-  \item {\bf Data set: } Data set is included (\verb+eval/inputs+)
-  \item {\bf Run-time environment: } Linux (latest version). The NVMM should be mounted in \verb+/mnt/pmem+ using a DAX-enabled file system (e.g. EXT4-DAX). We also provide a docker image containing linux 20.04 LTE with pre-installed dependencies.
-  \item {\bf Hardware: } A machine with a 16-core Intel processor with 16 GB or larger NVMM (e.g. Optane DC). The docker does not require NVMM and uses DRAM to emulate NVMM. 
+  \item {\bf Compilation: } \This{}: Rust 1.51.0-nightly (publicly available); PMDK, Atlas, Mnemosyne: GNU C++11, CMake $>=$ 3.3; go-pmem: Go lang.
+  \item {\bf Data set: } Data set is included (Will be downloaded automatically)
+  \item {\bf Run-time environment: } Linux (Ubuntu, Fedora, and NixOS). The NVMM should be mounted in \verb+/mnt/pmem0+ using a DAX-enabled file system (e.g. EXT4-DAX). We also provide a docker image containing Ubuntu 20.04 LTE with pre-installed dependencies.
+  \item {\bf Hardware: } A machine with a 16-core Intel processor with 16 GB or larger NVMM (e.g. Optane DC). The docker does not require NVMM and uses DRAM to emulate NVMM. The ISA should provide \verb+CL_FLUSHOPT+ since we customized Atlas to use it instead of \verb+CL_FLUSH+. Other libraries are adaptable to the system configuration.
   \item {\bf Metrics: } Execution time
-  \item {\bf Output: } Numerical results stored in \verb+perf.csv+ and \verb+scale.csv+ for performance and scalability, respectively. Expected results are also included in the text.
-  \item {\bf Experiments: } A script is provided to run the experiments and generate results. Although the results may vary depending on the build and the environment, there should not be a big difference between Corundum's performance and PMDK's.
+  \item {\bf Output: } Numerical results stored in \verb+perf.csv+, \verb+scale.csv+, and \verb+micro.csv+ for performance, scalability, and micro-benchmarks, respectively. Expected results are also included in the text.
+  \item {\bf Experiments: } A script is provided to run the experiments and generate results. Although the results may vary depending on the build and the environment, there should not be a big difference.
   \item {\bf How much disk space required (approximately)?: } 32~GB
   \item {\bf How much time is needed to prepare workflow (approximately)?: } 30 minutes
   \item {\bf How much time is needed to complete experiments (approximately)?: } $\leq$ 1 hour.
@@ -44,20 +44,27 @@ experiments and reproduce the results as they appear in the \refsec{sec:results}
 The artifacts are publicly available
 through Zenodo archival repository and GitHub. You can access the code by using its \href{https://zenodo.org/record/4321062}{DOI} or cloning the GitHub repository at \href{https://github.com/NVSL/Corundum/}{https://github.com/NVSL/Corundum/}.
 
-We also prepared a Docker image available 
+We also prepared a Docker image available at DockerHub.
 
 \subsubsection{Hardware dependencies}
 
-We recommend running the experiments on a machine with physical persistent memory such as Intel Obtane DC with at least 16~GB available space.
+We recommend running the experiments on a machine with a physical persistent memory such as Intel Obtane DC with at least 16~GB available space.
 
 Also, the scalability tests require at least 16-core processor to measure the execution time while running threads in parallel.
 
 \subsubsection{Software dependencies}
 
 \begin{itemize}
-  \item If you wish to use Docker, please install Docker and use the prepared docker image with pre-installed dependencies. Otherwise, please run \verb+eval/setup.sh+ on Ubuntu latest version.
-  \item To measure performance, we use \verb+perf+, a linux builtin monitoring tool for analyzing programs (included in \verb+eval/setup.sh+).
-  \item To compare Corundum with PMKD, please install both `libpmemobj' and `libpmemobj-cpp' by running \verb+eval/build.sh+.
+  \item To install \This{} without running the evaluations, installing Rust compiler with Cargo tool (1.51.0-nightly) would suffice.
+  \item To measure performance, we use \verb+perf+ (>=4.9.215), a linux (kernel>=3.10.0) builtin monitoring tool for analyzing programs (included in `\verb+eval/setup.sh+').
+  \item If you wish to use Docker, please install Docker and use the prepared docker image with pre-installed dependencies. Otherwise, please run os specific setup scripts (e.g `\verb+eval/ubuntu-deps.sh+' on Ubuntu latest version).
+  \item `\verb+eval/build.sh+' installs other libraries and workloads for comparison. It internally calls `\verb+build.sh+' scripts for each individual library:
+  \begin{itemize}
+    \item To compare Corundum with PMKD, please install both `libpmemobj' and `libpmemobj-cpp' by running `\verb+eval/pmdk/build.sh+'.
+    \item To compare Corundum with Atlas, please install it by running `\verb+eval/atlas/build.sh+'.
+    \item To compare Corundum with Mnemosyne, please install it by running `\verb+eval/mnemosyne/build.sh+'.
+    \item To compare Corundum with go-pmem, please run \verb+eval/go/build.sh+.
+  \end{itemize}
 \end{itemize}
 
 \subsection{Installation}
@@ -108,23 +115,25 @@ cargo test --tests -- --test-threads=1
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Experiment workflow}
 
-Running the experiments is automated though the following set of commands (for your convenience, please login as `root').
+Running the experiments is automated though the following set of commands:
 
 \begin{verbatim}
+$ sudo sysctl -w kernel.perf_event_paranoid=-1
 $ git clone https://github.com/NVSL/Corundum.git
 $ cd Corundum/eval
-$ ./setup.sh     # Install dependencies
-$ ./build.sh     # Build the workloads
-$ ./run.sh       # Run the tests
-$ ./results.sh   # Display the results
+$ ./ubuntu-deps.sh  # Install dependencies
+$ ./build.sh        # Build the libraries and workloads
+$ ./run.sh -o       # Run the tests with CLFLUSHOPT
+$ ./results.sh      # Display the results
 \end{verbatim}
 
 The \verb+eval/setup.sh+ downloads necessary libraries (for PMDK and Rust), and \verb+eval/build.sh+ compiles the benchmark applications.
 \verb+eval/run.sh+ executes benchmarks and collects the results, and generates two files:
 
 \begin{itemize}
-  \item \verb+perf.csv+: Compares Corundum with PMDK (Figure 1)
-  \item \verb+scale.csv+: Evaluates multi-threading scalability (Figure 2)
+  \item \verb+perf.csv+: Compares Corundum with other libraries (\reffig{fig:perf})
+  \item \verb+scale.csv+: Evaluates multi-threading scalability (\reffig{fig:scal})
+  \item \verb+micro.csv+: Lists average latency for basic operations (\reftab{tab:microbench})
 \end{itemize}
 
 \noindent Finally, \verb+eval/results.sh+ displays the results on screen.
@@ -166,51 +175,63 @@ To compare Corundum's performance with PMDK, we use three applications written i
   \center
   \small
   \setlength\tabcolsep{1.5pt}
-  \begin{tabular}{|c|c|c|c|c|c|c|c|c|} \hline
+  \begin{tabular}{|r|c|c|c|c|c|c|c|c|} \hline
     \multicolumn{9}{|c|}{Execution Time (s)}	\\ \hline						
-    & \multicolumn{2}{|c|}{BST}	& \multicolumn{2}{|c|}{KVStore}&\multicolumn{4}{|c|}{B+Tree}	\\ \hline	
-    & INS&CHK&PUT&GET&INS&CHK&REM&RAND\\ \hline
-    PMDK&4.5&4.1&8.7&5.1&8.6&2.2&7.9&6.3\\\hline
-    Corundum&3.4&3.4&2.9&2.1&12.9&1.4&11.8&8.6\\\hline
+    & \multicolumn{2}{|c|}{BST}	& \multicolumn{2}{|c|}{KVStore}&\multicolumn{4}{|c|}{B+Tree}	     \\\hline	
+    & INS&CHK&PUT&GET&INS&CHK&REM&RAND           \\\hline
+    PMDK     &3.9&5.3&2.1&1.1&4.7&1.0&3.9&3.4    \\\hline
+    Atlas    &2.5&2.3&2.0&1.5&20.6&0.4&13.0&11.9 \\\hline
+    Mnemosyne&14.0&1.8&2.5&1.5&14.9&1.2&6.0&8.5  \\\hline
+    go-pmem  &4.6&3.2&1.1&1.0&4.6&2.5&3.4&3.2    \\\hline
+    Corundum &3.3&3.1&0.8&0.4&4.8&0.5&4.6&3.1    \\\hline
   \end{tabular}
-  \caption{Expected output for performance comparison between PMDK and Corundum (perf.csv).}
+  \caption{Expected output for performance comparison between Corundum and a selection of other libraries (\csym{perf.csv}). \reffig{fig:perf} graphically represetns this data.}
   \label{tbl:perf}
 \end{table}
 
 
 \subsubsection{Scalability}
-To verify that Corundum provides scalability with respect to the thread number, we implemented a MapReduce application called \verb+grep+ which counts the frequency of every word in a list of text documents. The producer threads fill up a shared stack, and the consumer threads pop a batch from the stack, using a local record, count the frequency of every words in the batch, and finally update a shared HashMap with the local records. \reftab{tbl:scale} shows the expected execution times in seconds for various number of producer (p) and consumer (c) threads. We use Large Canterbury Corpus (http://www.data-compression.info/Corpora/CanterburyCorpus/) dataset as the input files (included in the archive).
+To verify that Corundum provides scalability with respect to the thread number, we implemented a MapReduce application called \verb+grep+ (referred as \verb+wordcount+ in the text) which counts the frequency of every word in a list of text documents. The producer threads fill up a shared stack, and the consumer threads pop a batch from the stack, using a local record, count the frequency of every words in the batch locally. We do not collect the local records because it adds a fixed amount of execution time to sequentially fetch data from threads. This is to better evaluate the scalability of the library. \reftab{tbl:scale} (\reffig{fig:scal}) shows the expected execution times in seconds for various number of producer (p) and consumer (c) threads. We use Large Canterbury Corpus (http://www.data-compression.info/Corpora/CanterburyCorpus/) dataset as the input files (included in the archive).
 
 \begin{table}[!ht]
-  \center
-  \begin{tabular}{|c|c|c|c|c|c|} \hline
-    p/c&1&2&3&7&14\\ \hline
-    1&30.83&15.85&11.09&7.45&8.03\\ \hline
-    2&28.77&15.65&11.65&6.96&7.36\\ \hline
+  
+  \begin{tabular}{|c|c|c|c|c|c|c|c|} \hline
+    seq&1:1&1:2&1:3&1:4&1:5&1:6&1:7\\\hline
+    1.0&1.3&2.8&4.0&5.1&6.0&7.5&8.6\\\hline\hline
+    1:8&1:9&1:10&1:11&1:12&1:13&1:14&1:15\\\hline
+    9.9&10.9&12.0&12.8&13.8&14.5&15.5&15.3\\\hline
   \end{tabular}
-  \caption{Expected output for Scalability (scale.csv) using emulated PM.}
+  \caption{Expected output for Scalability (scale.csv) using emulated PM. \reffig{fig:scal} graphically represents this data.}
   \label{tbl:scale}
 \end{table}
 
 
+\subsubsection{Microbenchmarks}
+The run script also reproduces \reftab{tab:microbench}. To measure the latency of each individual operation, we use a Rust provided measurement tool called \csym{Instant} and \csym{Duration}. On Linux, it internally uses \cfunc{clock\_gettime} system call. Since this tool is not zero cost, for operations with low latency such as \csym{Deref}, we measure running a batch of 50k of them and then calculate the average number. For these operations, we cannot report standard deviation.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Experiment customization}
 
-Corundum requires a DAX-enabled file system. We recommend EXT4-DAX. If you run the experiments on a real machine, use the following commands to format and mount the derive.
+Corundum requires a DAX-enabled file system. We recommend EXT4-DAX. If you run the experiments on a real machine, use the following commands to format and mount the derive(assuming the device name is \verb+/dev/pmem0+):
 
 \begin{verbatim}
-mkfs.ext4 /dev/pmem0
-mount -o dax /dev/pmem0 /mnt/pmem0
+$ sudo mkdir /mnt/pmem0
+$ sudo mkfs.ext4 /dev/pmem0
+$ sudo mount -t ext4 -o dax /dev/pmem0 /mnt/pmem0
 \end{verbatim}
 
-Many of the latency components are originated in Hardware, such as using \verb+CL_FLUSHOPT+ instead of \verb+CL_FLUSH+ when available. Corundum does not automatically detect these capabilities. However, it comes with some builtin features. In `\verb+Cargo.toml+', under the `features' section, update \verb+default=[]+ as required. For example, if the system supports \verb+CLWB+ instructions, you may force Corundum to use that by changing the default features to this:
+If there is no pmem device available, you may emulate it using DRAM though the following instructions:
+
+\begin{verbatim}
+$ sudo mkdir /mnt/pmem0
+$ sudo mount -t tmpfs /dev/pmem0 /mnt/pmem0
+\end{verbatim}
+
+Many of the latency components are originated in Hardware, such as using \verb+CL_FLUSHOPT+ instead of \verb+CL_FLUSH+ when available. Corundum does not automatically detect these capabilities. However, it comes with some builtin features. In `\verb+Cargo.toml+', under the `features' section, update \verb+default=[]+ or use `\verb+--feature="..."+' argument as required. For example, if the system supports \verb+CLWB+ instructions, you may force Corundum to use that by changing the default features to this:
 
 \begin{center}
-  \verb+default = ["pthread", "use_clwb"]+
+  \verb+default = ["no_pthread", "use_clwb"]+
 \end{center}
-
-Please note that in \verb+run.sh+, we disabled \verb+CL_FLUSHOPT+ and \verb+CLWB+ to force both PMDK and Corundum use \verb+CL_FLUSH+ to persist data.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Methodology}

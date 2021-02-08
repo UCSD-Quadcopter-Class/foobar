@@ -38,7 +38,7 @@
 \setcopyright{acmcopyright}
 \copyrightyear{2021}
 \acmYear{2021}
-\acmDOI{10.1145/1122445.1122456}
+% \acmDOI{10.1145/1122445.1122456}
 
 %% These commands are for a PROCEEDINGS abstract or paper.
 \acmConference[ASPLOS '21]{ASPLOS '21: ACM Symposium on Architectural Support
@@ -46,8 +46,8 @@ for Programming Languages and Operating Systems}{April 19--23, 2021}{Virtual}
 \acmBooktitle{ASPLOS '21: ACM Symposium on Architectural Support
 for Programming Languages and Operating Systems,
 April 19--23, 2021, Virtual}
-\acmPrice{15.00}
-\acmISBN{978-1-4503-XXXX-X/18/06}
+% \acmPrice{15.00}
+% \acmISBN{978-1-4503-XXXX-X/18/06}
 
 
 %%
@@ -159,7 +159,7 @@ April 19--23, 2021, Virtual}
 %% other information printed in the page headers. This command allows
 %% the author to define a more concise list
 %% of authors' names for this purpose.
-\renewcommand{\shortauthors}{Trovato and Tobin, et al.}
+% \renewcommand{\shortauthors}{Trovato and Tobin, et al.}
 
 
 %\title{Sustainable Persistent Programming in Rust with \This{}}
@@ -173,39 +173,45 @@ April 19--23, 2021, Virtual}
 %% Please copy and paste the code instead of the example below.
 %%
 \begin{CCSXML}
-  <ccs2012>
-   <concept>
-    <concept_id>10010520.10010553.10010562</concept_id>
-    <concept_desc>Computer systems organization~Embedded systems</concept_desc>
-    <concept_significance>500</concept_significance>
-   </concept>
-   <concept>
-    <concept_id>10010520.10010575.10010755</concept_id>
-    <concept_desc>Computer systems organization~Redundancy</concept_desc>
-    <concept_significance>300</concept_significance>
-   </concept>
-   <concept>
-    <concept_id>10010520.10010553.10010554</concept_id>
-    <concept_desc>Computer systems organization~Robotics</concept_desc>
-    <concept_significance>100</concept_significance>
-   </concept>
-   <concept>
-    <concept_id>10003033.10003083.10003095</concept_id>
-    <concept_desc>Networks~Network reliability</concept_desc>
-    <concept_significance>100</concept_significance>
-   </concept>
+<ccs2012>
+    <concept>
+        <concept_id>10011007.10011006.10011072</concept_id>
+        <concept_desc>Software and its engineering~Software libraries and repositories</concept_desc>
+        <concept_significance>500</concept_significance>
+        </concept>
+    <concept>
+        <concept_id>10011007.10011006.10011041.10011042</concept_id>
+        <concept_desc>Software and its engineering~Incremental compilers</concept_desc>
+        <concept_significance>300</concept_significance>
+        </concept>
+    <concept>
+        <concept_id>10011007.10011074.10011099.10011692</concept_id>
+        <concept_desc>Software and its engineering~Formal software verification</concept_desc>
+        <concept_significance>500</concept_significance>
+        </concept>
+    <concept>
+        <concept_id>10011007.10011074.10011099.10011102.10011103</concept_id>
+        <concept_desc>Software and its engineering~Software testing and debugging</concept_desc>
+        <concept_significance>300</concept_significance>
+        </concept>
+    <concept>
+        <concept_id>10010583.10010600.10010607.10010610</concept_id>
+        <concept_desc>Hardware~Non-volatile memory</concept_desc>
+        <concept_significance>500</concept_significance>
+        </concept>
   </ccs2012>
 \end{CCSXML}
 
-\ccsdesc[500]{Computer systems organization~Embedded systems}
-\ccsdesc[300]{Computer systems organization~Redundancy}
-\ccsdesc{Computer systems organization~Robotics}
-\ccsdesc[100]{Networks~Network reliability}
+\ccsdesc[500]{Software and its engineering~Software libraries and repositories}
+\ccsdesc[300]{Software and its engineering~Incremental compilers}
+\ccsdesc[500]{Software and its engineering~Formal software verification}
+\ccsdesc[300]{Software and its engineering~Software testing and debugging}
+\ccsdesc[500]{Hardware~Non-volatile memory}
 
 %%
 %% Keywords. The author(s) should pick words that accurately describe
 %% the work being presented. Separate the keywords with commas.
-\keywords{datasets, neural networks, gaze detection, text tagging}
+\keywords{non-volatile memory programming library, static bug detection, crash-consistent programming}
 
 %%
 %% This command processes the author and affiliation and title

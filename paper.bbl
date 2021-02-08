@@ -42,6 +42,8 @@
  \bibinfo{year}{[n.d.]}\natexlab{}.
 \newblock \bibinfo{booktitle}{\emph{The {Go} Programming Language}}.
 \newblock
+\newblock
+\shownote{\url{https://golang.org/}.}
 
 
 \bibitem[\protect\citeauthoryear{??}{pon}{[n.d.]}]%
@@ -49,6 +51,8 @@
  \bibinfo{year}{[n.d.]}\natexlab{}.
 \newblock \bibinfo{booktitle}{\emph{Pony programming language}}.
 \newblock
+\newblock
+\shownote{\url{https://www.ponylang.io/}.}
 
 
 \bibitem[\protect\citeauthoryear{??}{int}{2015}]%
@@ -56,6 +60,8 @@
  \bibinfo{year}{2015}\natexlab{}.
 \newblock \bibinfo{booktitle}{\emph{An introduction to pmemcheck}}.
 \newblock
+\newblock
+\shownote{\url{https://pmem.io/2015/07/17/pmemcheck-basic.html}.}
 
 
 \bibitem[\protect\citeauthoryear{Alshboul, Tuck, and Solihin}{Alshboul
@@ -94,14 +100,6 @@
 \newblock
 
 
-\bibitem[\protect\citeauthoryear{Bridge}{Bridge}{[n.d.]}]%
-        {personalbillbridge}
-\bibfield{author}{\bibinfo{person}{Bill Bridge}.}
-  \bibinfo{year}{[n.d.]}\natexlab{}.
-\newblock \bibinfo{howpublished}{personal communication}.
-\newblock
-
-
 \bibitem[\protect\citeauthoryear{Bridge}{Bridge}{2015}]%
         {oracle-nvm-direct}
 \bibfield{author}{\bibinfo{person}{Bill Bridge}.}
@@ -112,6 +110,14 @@
 \newblock
 \shownote{Available at
   \url{http://www.snia.org/sites/default/files/BillBridgeNVMSummit2015Slides.pdf}.}
+
+
+\bibitem[\protect\citeauthoryear{Bridge}{Bridge}{2020}]%
+        {personalbillbridge}
+\bibfield{author}{\bibinfo{person}{Bill Bridge}.}
+  \bibinfo{year}{2020}\natexlab{}.
+\newblock \bibinfo{howpublished}{personal communication}.
+\newblock
 
 
 \bibitem[\protect\citeauthoryear{Chakrabarti, Boehm, and Bhandari}{Chakrabarti
@@ -283,6 +289,8 @@
   Nichols}.} \bibinfo{year}{[n.d.]}\natexlab{}.
 \newblock \bibinfo{booktitle}{\emph{The Rust Programming Language}}.
 \newblock
+\newblock
+\shownote{\url{https://doc.rust-lang.org/book/}.}
 
 
 \bibitem[\protect\citeauthoryear{Lantz, Dulloor, Kumar, Sankaran, and
@@ -437,6 +445,8 @@
 \newblock \bibinfo{booktitle}{\emph{How to detect persistent memory programming
   errors using Intel Inspector - Persistence Inspector}}.
 \newblock
+\newblock
+\shownote{\url{https://software.intel.com/}.}
 
 
 \bibitem[\protect\citeauthoryear{Oukid, Booss, Lespinasse, and Lehner}{Oukid
