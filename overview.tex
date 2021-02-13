@@ -200,7 +200,7 @@ object to its pool.  Likewise, transactions are bound to a particular pool via
 the pool type.  In our discussion, we use \csym{P} as a representative pool
 type.
 
-Programs open a pool by calling \csym{P}'s \cfunc{open} function:\linebreak\csym{P::open<T>(foo)}.  This binds \csym{P} to the pool in file
+Programs open a pool by calling \csym{P}'s \cfunc{open} function:\linebreak\csym{P::open<T>("foo")}.  This binds \csym{P} to the pool in file
 \csym{foo}.  \This{} ensures that only one open pool is bound to \csym{P} at
 any time.  The type parameter, \csym{T}, determines the type of the root
 pointer.  \cfunc{P::open<T>} returns an immutable reference to the root pointer.  Pools remain
@@ -215,13 +215,10 @@ therefore, the number of simultaneously open pools) is fixed at compile time.
 \csym{PSafe}, so these types and structs composed of them are \csym{PSafe}.
 
 \csym{PSafe} (like all of \this{}'s auto traits) is declared
-\csym{unsafe}, so programmers should not explicitly label types as \csym{PSafe}
-or \csym{!PSafe}.
+\csym{unsafe}, so programmers should not explicitly label types as \csym{PSafe}.
 
-Reference and smart pointer types that point to volatile data (e.g.,
-references, mutable reference, \csym{Box}, \csym{Arc}, \csym{Rc}, and
-\csym{Mutex}) and types that refer to state external to the program (e.g., file
-handles) are \csym{!PSafe}.
+Reference and raw pointers, and types that refer to state external to the program (e.g., file handles) are \csym{!PSafe}. Having a \csym{!PSafe} field (as in \csym{Box}, \csym{Rc}, \csym{Arc},
+\csym{Mutex}, etc.), also, makes a type \csym{!PSafe}.
 
 \input{example}
 
@@ -489,7 +486,7 @@ pools have different types, and assignment between types is not allowed in Rust.
 \boldparagraph{Pointers from a pool to volatile memory} These pointers are
 also inherently unsafe.  They are also disallowed: Pools only contain
 \csym{PSafe} objects (\nameref{goal:only-persistent-objects}) and pointers to
-volatile memory are \csym{!PSafe}.
+volatile memory are \csym{!PSafe}. 
 
 \boldparagraph{Pointers from volatile memory into a pool} The object a
 \csym{VWeak} refers to can disappear if the last \csym{Parc} refering to the
@@ -647,9 +644,9 @@ allocations and deallocation that occur in a transaction.
 also support weak references to allow for cyclic data structures.
 
 Like Rust's \csym{Rc} and \csym{Arc},  \csym{Prc} and \csym{Parc} provide
-a \cfunc{clone} methods to create a new strong reference to the shared data and
-increment the reference count.  The reference counts are persistent, so
-modifying them requires \cfunc{clone} to take a journal object.
+a cloning method, \cfunc{pclone}, to create a new strong reference to the shared
+data and increment the reference count.  The reference counts are persistent, so
+modifying them requires \cfunc{pclone} to take a journal object.
 
 \boldparagraph{Allocation} The only way to allocate persistent memory is by
 creating \csym{Pbox}, \csym{Prc}, or \csym{Parc} instances.  Since the
@@ -674,7 +671,7 @@ occur outside a transaction.
 instead of releasing it immediately, \this{} logs the release and performs it
 during transaction commit.
 
-Logging occurs in \cfunc{drop} (i.e., the destructor) for
+Logging occurs in \cfunc{drop} (i.e., the destructor) for \csym{Prc},
  \csym{Parc} and \csym{Pbox}.  \This{} must ensure that
 deallocation only occurs within a transaction.
 
@@ -714,14 +711,13 @@ unavailable inside the transaction.
 
 \This{} extends Rust's reference-counting memory management system to prevent persistent memory
 leaks (in the absence of cycles) and multiple-frees.
-\This{} provides an additional guarantee that is necessary for persistent memory: It ensures that, by the end of the allocating transaction, the newly allocated persistent memory is reachable from some previous allocated persistent memory.  This ensures that crashes (which
+\This{} provides an additional guarantee that is necessary for persistent memory: It ensures that, by the end of the allocating transaction, the newly allocated persistent memory is reachable from some previously allocated persistent memory.  This ensures that crashes (which
 invalidate all volatile pointers) do not leak volatile memory.
 
 \begin{goaltrue}{goal:no-memory-leaks}
 
-\This{} adds three mechanisms Rust's reference counting mechanism to prevent memory leaks in acyclic persistent data structures.
-First, it extends Rust's reference counting mechanism to persistent memory:
- First, the atomicity of memory allocations within a transaction prevents the
+\This{} adds three mechanisms extending Rust's reference counting mechanism to prevent memory leaks in acyclic persistent data structures.
+First, the atomicity of memory allocations within a transaction prevents the
 creation of orphaned data if a transaction does not commit.  Second, the
 transaction cannot assign a newly-allocated PMEM region to a captured volatile
 variable (\nameref{inv:tx-no-volatile-mut}).  This prevents persistent data
@@ -806,17 +802,19 @@ new thread provides a potential escape.  Consider this example:
 \begin{lstlisting}
   P::transaction(|j| {
     let a = Parc::new(j, 42);
-    thread::spawn(|k| {
+    thread::spawn(move |k| {
       let b = a;
     });
   });
 \end{lstlisting}
 
-Rust's \csym{spawn} functions executes its argument (a lambda) in a new thread.
-In the code, \csym{a} is an orphan but the thread captures a reference to it.
+Rust's \cfunc{thread::spawn} function executes its argument\linebreak
+(a lambda) in a new thread.
+In the code, \csym{a} is an orphan but it moves to the thread's scope.
 The thread's body is outside the transaction, so our invariant does not hold.
-To restore the invariant, \this{} makes \csym{Pbox} and \csym{Parc}
-\csym{!Send}.  This prevents their capture by a thread body.
+To restore the invariant, additional to \csym{Prc}, \this{} makes \csym{Pbox}
+and \csym{Parc} \csym{!Send}, too.  This prevents their capture by a thread body
+or moving to the thread's scope.
 
 \ignore{\nameref{goal:no-memory-leaks} only holds for acyclic data structures,
 since \csym{Parc} and \csym{Prc} use simple reference counts and cannot detect
@@ -862,14 +860,14 @@ When a pool initiates a transaction, it first checks whether it is called from a
 
 \reflst{lst:example} implements \cfunc{append} for a persistent linked list in \this{}.  A \csym{Node} contains an integer and a link to the next \csym{Node}.  The link is of type \csym{PRefCell<Option<Pbox<Node,P>{>,P>}}, which might seem daunting, but this is typical for a Rust pointer declaration.  To break it down: \csym{PBox<Node, P>} is pointer to a \csym{Node} in pool \csym{P}.  \csym{Option<>} allows the pointer to be \csym{None}.  Wrapping the \csym{Option} in \csym{PRefCell} allows for modification via interior mutability.
 
-The function \cfunc{append} recursively finds the end of the list, \csym{n} and adds a \csym{Node}.  \refl{ln:borrow} uses \cfunc{PRefCell::borrow\_mut} to get a mutable reference, \csym{t}, to the \csym{Option} object the \csym{PRefCell} contains. \refl{ln:match} uses Rust's \csym{match} construct to safely handle all possible values of \csym{t}: \csym{None} or \csym{Some}.  In the \csym{Some} (i.e., non-null) case, it binds the content of the \csym{Option} (which has type \csym{Node}) to \csym{succ}, and recursively calls \cfunc{append}.
+The function \cfunc{append} recursively finds the end of the list \csym{n}, and adds a \csym{Node}.  \refl{ln:borrow} uses \cfunc{PRefCell::borrow\_mut} to get a mutable reference, \csym{t}, to the \csym{Option} object the \csym{PRefCell} contains. \refl{ln:match} uses Rust's \csym{match} construct to safely handle all possible values of \csym{t}: \csym{None} or \csym{Some}.  In the \csym{Some} (i.e., non-null) case, it binds the content of the \csym{Option} (which has type \csym{Node}) to \csym{succ}, and recursively calls \cfunc{append}.
 
-If the \csym{Option} is \csym{None}, the code has reached the end of the list.  Line~\ref{ln:new} creates a \csym{PBox} to allocate a new \csym{Node} with value \csym{k} and a \csym{next} pointer equal to \csym{None}.  It wraps the \csym{PBox} in a non-null value of type \csym{Option}, and assigns it to the mutable reference.
+If the \csym{Option} is \csym{None}, the code has reached the end of the list.  Line~\ref{ln:new} creates a \csym{PBox} to allocate a new \csym{Node} with value \csym{v} and a \csym{next} pointer equal to \csym{None}.  It wraps the \csym{PBox} in a non-null value of type \csym{Option}, and assigns it to the mutable reference.
 
 
 Function \cfunc{go} opens ``list.pool'' and binds it to pool type \csym{P}.  The root pointer will hold a \csym{Node} struct.  \refl{ln:tx} starts a transaction, which provides a journal object, which \refl{ln:call} passes to \cfunc{append}.
 
-Several aspects of the code are notable.  First, \csym{head} and \csym{n} are both immutable, so changes are not possible until \cfunc{borrow\_mut} uses interior mutability to return a mutable reference object.  Second, we must pass \csym{j} into \cfunc{append} to ensure it executes in a transaction thereby allowing the call to \cfunc{borrow\_mut}  and the memory allocation (\refl{ln:new}).  Third, although we create call \cfunc{borrow\_mut} for every link in the list, \this{} only logs the last one, since logging only happens when \csym{*t} dereferences the reference object (\refl{ln:new}).  Forth, as written, \csym{Node} and \csym{append} only work on pool type \csym{P}.  A more complete implementation would be make \csym{P} a generic type parameter, so they could work on any pool type.
+Several aspects of the code are notable.  First, \csym{head} and \csym{n} are both immutable, so changes are not possible until \cfunc{borrow\_mut} uses interior mutability to return a mutable reference object.  Second, we must pass \csym{j} into \cfunc{append} to ensure it executes in a transaction thereby allowing the call to \cfunc{borrow\_mut}  and the memory allocation (\refl{ln:new}).  Third, although we create call \cfunc{borrow\_mut} for every link in the list, \this{} only logs the last one, since logging only happens when \csym{*t} dereferences the reference object (\refl{ln:new}).  Forth, as written, \csym{Node} and \csym{append} only work on pool type \csym{P}.  A more complete implementation would make \csym{P} a generic type parameter, so they could work on any pool type.
 
 \newcommand{\Dynamic}{D}
 \newcommand{\Static}{S}
@@ -900,7 +898,7 @@ against higher level errors (e.g., whether a persistent hash map will function
 correctly).
 
 \boldparagraph{Dynamic Checks} In some cases, \this{} provides dynamic, rather than static, checks.
-In these case we could not find a way to enforce them with Rust's
+In these cases we could not find a way to enforce them with Rust's
 type system.
 
 \This{} performs dynamic checks to protect

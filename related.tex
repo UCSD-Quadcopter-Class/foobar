@@ -30,7 +30,7 @@ programmer using them reliably and providing tests with good coverage.
 
 \subsection{PM Programing Libraries}
 
-Among PM libraries, PMDK~\cite{pmdk} is the mostly widely used.  It provide dynamic checks to prevent inter-pool pointers in C and the C++ version provides static enforcement for atomicity, but otherwise the programmer is responsible for enforcing safety.
+Among PM libraries, PMDK~\cite{pmdk} is the most widely used.  It provides dynamic checks to prevent inter-pool pointers in C and the C++ version provides static enforcement for atomicity, but otherwise the programmer is responsible for enforcing safety.
 
 NV-Heaps~\cite{nvheaps} and Mnemosyne~\cite{mnemosyne} rely on the C++ type system and a custom compiler, respectively, to statically avoid data races, atomicity violations, and pointers from PM into volatile memory.  Both systems go to some pains help avoid bugs, but the weakness of the C/C++ type systems make the guarantees they provide easy to circumvent.  NV-heaps addresses the problem of closed pools -- by not allowing pools to close.
 
@@ -48,7 +48,7 @@ other aspects of the language.
 
 
 Despite the attractivensess of orthogonal persistence, \this{} and other
-recently-proposed system are not orthogonally persistent.  We made this design
+recently-proposed systems are not orthogonally persistent.  We made this design
 decision in \this{} because all three principles of orthogonal persistence~\cite{atkinson1995orthogonally} face practical
 problems, especially with respect to performance, system complexity, and
 consistency.  First, “persistence independence” (i.e., using the same code for
