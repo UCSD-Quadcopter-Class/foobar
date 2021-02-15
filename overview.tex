@@ -446,7 +446,8 @@ Three of the methods listed --
 objects are all stranded. %subject to same constraints as the smart pointers (e.g., they
 %are \csym{!TxOutSafe}).
 
-\csym{VWeak} is a pointer from volatile memory into a pool.
+\csym{VWeak} %is a pointer from volatile memory into a pool.
+is the only way to hold a volatile pointer to persistent data.
 % \steve{The motivation for Vweak is not clear.  Is it the case that Vweak is the only way to have a pointer from DRAM into PMEM?} \morteza{Yes, it is. I'm not sure what should we add?}
 It is ``weak'' in
 the sense that it does not affect reference counts.  The \cfunc{promote} method

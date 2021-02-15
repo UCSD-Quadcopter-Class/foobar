@@ -62,7 +62,7 @@ Also, the scalability test requires a 16-core processor to measure the execution
 
 \subsection{Installation}
 
-The docker image already have the dependencies pre-installed. If you wish to run it on a real system, please follow the steps in the rest of this section.
+The docker image already has the dependencies pre-installed. If you wish to run it on a real system, please follow the steps in the rest of this section.
 
 \subsubsection{Installing Rust}
 
@@ -77,12 +77,12 @@ $ source $HOME/.cargo/env
 $ rustup default nightly
 \end{verbatim}
 
-If tou are using
-another OS, please refer to Rust's official website
-for the instructions at
-\begin{center}
-  \href{https://www.rust-lang.org/tools/install}{https://www.rust-lang.org/tools/install}
-\end{center}
+% If tou are using
+% another OS, please refer to Rust's official website
+% for the instructions at
+% \begin{center}
+%   \href{https://www.rust-lang.org/tools/install}{https://www.rust-lang.org/tools/install}
+% \end{center}
 
 \subsubsection{Building Corundum}
 
@@ -98,7 +98,7 @@ $ cargo build --release --examples
 \subsubsection{Verifying the compilation}
 
 Optionally you can run the tests to verify it.
-Since tests may share pool files, we run them one-by-one.
+Since tests may share pool files, we run them sequentially.
 
 \begin{verbatim}
 $ cargo test --tests -- --test-threads=1 
@@ -171,6 +171,8 @@ To compare Corundum's performance with other libraries, we use three application
   \center
   \small
   \setlength\tabcolsep{1.5pt}
+  \caption{Expected output for performance comparison between Corundum and a selection of other libraries (\csym{perf.csv}). \reffig{fig:perf} graphically represetns this data.}
+  \label{tbl:perf}
   \begin{tabular}{|r|c|c|c|c|c|c|c|c|} \hline
     \multicolumn{9}{|c|}{Execution Time (s)}	\\ \hline						
     & \multicolumn{2}{|c|}{BST}	& \multicolumn{2}{|c|}{KVStore}&\multicolumn{4}{|c|}{B+Tree}	     \\\hline	
@@ -181,8 +183,6 @@ To compare Corundum's performance with other libraries, we use three application
     go-pmem  &4.6&3.2&1.1&1.0&4.6&2.5&3.4&3.2    \\\hline
     Corundum &3.3&3.1&0.8&0.4&4.8&0.5&4.6&3.1    \\\hline
   \end{tabular}
-  \caption{Expected output for performance comparison between Corundum and a selection of other libraries (\csym{perf.csv}). \reffig{fig:perf} graphically represetns this data.}
-  \label{tbl:perf}
 \end{table}
 
 
@@ -190,15 +190,14 @@ To compare Corundum's performance with other libraries, we use three application
 To verify that Corundum provides scalability with respect to the number of threads, we implemented a MapReduce application called \verb+grep+ (referred as \verb+wordcount+ in the text) which counts the frequency of every word in a list of text documents. The producer threads fill up a shared stack, and the consumer threads pop a segment from the stack and count the number of appearance of every words in the segment locally. We do not collect the local records because it adds a fixed amount of execution time to sequentially fetch data from threads. This is to better evaluate the scalability of the library. \reftab{tbl:scale} (\reffig{fig:scal}) shows the expected speedup in execution time for various number of producer (p) and consumer (c) threads. We use Large Canterbury Corpus (http://www.data-compression.info/Corpora/CanterburyCorpus/) dataset as the input files (included in the archive).
 
 \begin{table}[!ht]
-  
+  \caption{Expected output for Scalability (scale.csv) using emulated PM. \reffig{fig:scal} graphically represents this data.}
+  \label{tbl:scale}
   \begin{tabular}{|c|c|c|c|c|c|c|c|} \hline
     seq&1:1&1:2&1:3&1:4&1:5&1:6&1:7\\\hline
     1.0&1.4&2.9&4.1&5.2&6.2&7.4&8.7\\\hline\hline
     1:8&1:9&1:10&1:11&1:12&1:13&1:14&1:15\\\hline
     9.5&11.1&12.3&13.2&14.2&15.0&15.7&15.9\\\hline
   \end{tabular}
-  \caption{Expected output for Scalability (scale.csv) using emulated PM. \reffig{fig:scal} graphically represents this data.}
-  \label{tbl:scale}
 \end{table}
 
 
