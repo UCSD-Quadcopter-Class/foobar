@@ -34,6 +34,9 @@ performance with \csym{unsafe} blocks.
 \begin{table}
   \footnotesize
   \center
+  \caption{Adding persistence to data structures with \this{} requires fewer
+    changes (measured in lines of code) than PMDK.}
+  \label{tab:loc}
   \begin{tabular}{|r||c|c||c|c|}
     \hline
     App & Rust & \This{} & C++ & PMDK \\ \hline\hline
@@ -41,10 +44,6 @@ performance with \csym{unsafe} blocks.
     Binary tree & 256&+12 (4.7\%) & 208&+41 (19.7\%) \\ \hline
     HashMap     & 165&+10 (6.1\%)  & 137&+42 (30.7\%) \\ \hline
   \end{tabular}
-  \caption{Adding persistence to data structures with \this{} requires fewer
-    changes (measured in lines of code) than PMDK.}
-  \label{tab:loc}
-  \vspace{-0.5cm}
 \end{table}
 
 \subsection{Ease of Use}
@@ -218,8 +217,10 @@ We compared our library with PMDK's libpmemobj and libpmemobj++ by porting some 
 To measure the performance in both \this{} and PMDK, we use the linux provided tool \csym{perf}. We use \extfsDAX{} to mount the persistent memory and create the pool files in both cases in the same location. To fairly compare the performance, we use the same CPU mask for both cases, and run the experiments on the local NUMA node. Both libraries are built at the same (equivalent) level of optimization.}
 
 \begin{table}
-      \center
-      \footnotesize
+    \center
+    \footnotesize
+    \caption{Microbenchmarks. The first three are used to compare the performance of \this{} with PMDK. Wordcount measures \this{}'s scalability with thread count.}
+    \label{tab:perf:wrkld}
     \begin{tabular}{|p{0.5in}|p{2.5in}|}
         \hline
         BST & A transaction-free (in PMDK and \This) and failure-atomic implementation of a Binary Search Tree \\ \hline
@@ -227,8 +228,6 @@ To measure the performance in both \this{} and PMDK, we use the linux provided t
         B+Tree & An optimized, balanced B+Tree with 8-way fanout.  \\ \hline
         wordcount & Counts the occurrences of each word in a corpus of text using a hashmap and producer/consumer threads\\\hline
     \end{tabular}
-    \caption{Microbenchmarks. The first three are used to compare the performance of \this{} with PMDK. Wordcount measures \this{}'s scalability with thread count.}
-    \label{tab:perf:wrkld}
 \end{table}
 
 %(Only on \this{}) A MapReduce implementation of a word counter pro-gram  that finds  the  frequency  of all words  in  alist of files.  Two threads read from file and pushstring lines with at-least 1024 characters in a sharedstack. Another 16 threads pop from the stack, countthe words, and update a sharedHashMapmappingwords to their frequency in three separate transac-tions. \\ \hline
@@ -236,19 +235,19 @@ To measure the performance in both \this{} and PMDK, we use the linux provided t
 \begin{table}
   \center
   \footnotesize
+  \caption{\textbf{\This's basic operation latency and standard deviation} for durability and safety support measured on Intel's Optane DC and Battery-Backed DRAM, with 50K operations per test.}
+  \label{tab:microbench}
   \begin{tabular}{|l||l|l||l|l|}\hline
     \input{microbench.table}
   \end{tabular}
-  \caption{\textbf{\This's basic operation latency and standard deviation} for durability and safety support measured on Intel's Optane DC and Battery-Backed DRAM, with 50K operations per test.}
-  \label{tab:microbench}
-  \vspace{-0.5cm}
+  % \vspace{-0.5cm}
 \end{table}
 
 \subsubsection{Basic Operation Performance}
 
-\reftab{tab:microbench} reports the latency of basic operations along with the standard deviation measured on the platform described in \refsec{sec:res:platform}. To evaluate the impact of storage technology, we measure these operations on both Optane DC persistent memory and DRAM. ``STD'' is the standard deviation. Some of the items have a very small average latency, so we measure a batch of operations and calculate the average. This prevents us from calculating the standard deviation for those operations.
+\reftab{tab:microbench} reports the latency of basic operations along with the standard deviation measured on the platform described in \refsec{sec:res:platform}. To evaluate the impact of storage technology, we measure these operations on both Optane DC persistent memory and DRAM. Some of the items have a very small average latency, so we measure a batch of operations and calculate the average. This prevents us from calculating the standard deviation for those operations.
 
-To measure dereferencing operations, we use a \csym{Pbox<i32>}. Dereferencing a persistent pointer involves address translation and memory indirection. The Rust compiler uses CPU registers to cache the base and offset addresses. As a result, the dereferencing operation performs less than 1~ns, for both read and write. However, writing for the first time requires logging which takes around 470~ns.
+To measure dereferencing operations, we use a \csym{Pbox<i32>}. Dereferencing a persistent pointer involves address translation and memory indirection. The Rust compiler tends to keep the base and offsets for address translation in registers. As a result, the dereferencing operation performs less than 1~ns, for both read and write. However, writing for the first time requires logging which takes around 470~ns (\csym{DerefMut}, the 1st time).
 
 For memory allocation, \This{} uses a buddy system~\cite{buddy} which performs small allocations by splitting large free blocks, and coalescing small, free adjacent blocks on deallocation to yield larger free blocks. Therefore, small free blocks are more available than large free blocks. For example, a free block of size 8192~B can be split into 1024 small free blocks of 8~B, or only 2 large block of size 4~kB. \reftab{tab:microbench} confirms this fact. In contrast to allocation, freeing memory takes almost constant time, because merging is rare.
 
@@ -302,11 +301,10 @@ and sometimes significantly faster.
     \caption{\label{fig:perf} Performance comparison between \this{}, PMDK, Atlas, Mnemosyne, and go-pmem}
 \end{figure}
 
-The Wordcount benchmark measures scalability.  It collects character strings from multiple text, and measures the frequency of each word in a set of threads (consumers).
+The Wordcount benchmark measures scalability.  It uses a single IO thread to pull text from input files and distributes it to a pool of worker threads that count words.  It is embarassingly parallel.
 \This{} provides
 a separate allocator and journal object for every thread to allow concurrency. %concurrent allocation.
-\reffig{fig:scal} shows that the performance scales with thread count.
-Since Wordcount is embarrassingly parallel, this shows that Corundum does not limit scalability.
+\reffig{fig:scal} shows that the performance scales with thread count, demonstrating  that \this{} does not limit scalability.
 
 \begin{figure}
     \begin{center}

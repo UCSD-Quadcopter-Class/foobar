@@ -410,14 +410,14 @@ and plays a role in avoiding memory leaks.
 \begin{table*}
 { \centering
   \footnotesize
-  \begin{tabular}{|l|l|p{4in}|}\hline
-    \input{PtrTypeAPI.table}
-  \end{tabular}}
   \caption{\This{}'s smart pointers and type wrappers for persistent data
     corresponding closely Rust's pointers and wrappers for volatile data.  The
     key differences are that the \this{} types takes pool type as a type
     parameter, binding them to a particular pool.}
   \label{tab:types}
+  \begin{tabular}{|l|l|p{4in}|}\hline
+    \input{PtrTypeAPI.table}
+  \end{tabular}}
 \end{table*}
 
 \ignore{
@@ -446,7 +446,9 @@ Three of the methods listed --
 objects are all stranded. %subject to same constraints as the smart pointers (e.g., they
 %are \csym{!TxOutSafe}).
 
-\csym{VWeak} is a pointer from volatile memory into a pool.  It is ``weak'' in
+\csym{VWeak} is a pointer from volatile memory into a pool.
+% \steve{The motivation for Vweak is not clear.  Is it the case that Vweak is the only way to have a pointer from DRAM into PMEM?} \morteza{Yes, it is. I'm not sure what should we add?}
+It is ``weak'' in
 the sense that it does not affect reference counts.  The \cfunc{promote} method
 grants access to the data a \csym{VWeak} refers to by providing a \csym{Parc}
 that refers to the same data.  Promoting is only possible within a transaction.
@@ -487,7 +489,7 @@ also inherently unsafe.  They are also disallowed: Pools only contain
 \csym{PSafe} objects (\nameref{goal:only-persistent-objects}) and pointers to
 volatile memory are \csym{!PSafe}. 
 
-\boldparagraph{Pointers from volatile memory into a pool} VWeak is the only way store a pointer to PMEM in volatile memory. The object a
+\boldparagraph{Pointers from volatile memory into a pool} \csym{VWeak} is the only way store a pointer to PMEM in volatile memory. The object a
 \csym{VWeak} refers to can disappear if the last \csym{Prc}/\csym{Parc} refering to the
 object goes out of scope, deallocating the memory. In this case,
 \cfunc{promote} will return \csym{None}, which is safe in Rust.
@@ -811,7 +813,7 @@ Rust's \cfunc{thread::spawn} function executes its argument\linebreak
 In the code, \csym{a} is an orphan but it moves to the thread's scope.
 The thread's body is outside the transaction, so our invariant does not hold.
 To prevent this, \this{} makes \csym{Pbox}
-and \csym{Parc} \csym{!Send} to prevent their  capture by or transmission to another thread.  \csym{VWeak} remains Send, so it can be used to transmit persistent state between threads.
+and \csym{Parc} \csym{!Send} to prevent their  capture by or transmission to another thread.  \csym{VWeak} remains \csym{Send}, so it can be used to transmit persistent state between threads.
 
 \ignore{\nameref{goal:no-memory-leaks} only holds for acyclic data structures,
 since \csym{Parc} and \csym{Prc} use simple reference counts and cannot detect
@@ -873,12 +875,11 @@ Several aspects of the code are notable.  First, \csym{head} and \csym{n} are bo
 \begin{table*}
   \center
   \footnotesize
+  \caption{\This{} more static checks than other PMEM libraries, using them to meet most of its design goals. ('S'=Static, 'D'=Dynamic, 'M'=Manual, 'GC'=Garbage Collection, 'RC'=Reference Counting)}
+  \label{tab:libs}
   \begin{tabular}{|l|c|c|c|c|c|c|c|c|}\hline
     \input{system-survey.table}
   \end{tabular}
-  \caption{\This{} more static checks than other PMEM libraries, using them to meet most of its design goals. ('S'=Static, 'D'=Dynamic, 'M'=Manual, 'GC'=Garbage Collection, 'RC'=Reference Counting)}
-  \label{tab:libs}
-  \vspace{-0.5cm}
 \end{table*}
 
 \subsection{Limitations and Potential Improvements to Rust}
