@@ -22,33 +22,13 @@
 %% in the same archive or directory.)
 %%
 %% The first command in your LaTeX source must be the \documentclass command.
-\documentclass[sigconf]{acmart}
+\documentclass[sigconf,screen]{acmart}
 
 %%
 %% \BibTeX command to typeset BibTeX logo in the docs
 \AtBeginDocument{%
   \providecommand\BibTeX{{%
     \normalfont B\kern-0.5em{\scshape i\kern-0.25em b}\kern-0.8em\TeX}}}
-
-%% Rights management information.  This information is sent to you
-%% when you complete the rights form.  These commands have SAMPLE
-%% values in them; it is your responsibility as an author to replace
-%% the commands and values with those provided to you when you
-%% complete the rights form.
-\setcopyright{acmcopyright}
-\copyrightyear{2021}
-\acmYear{2021}
-% \acmDOI{10.1145/1122445.1122456}
-
-%% These commands are for a PROCEEDINGS abstract or paper.
-\acmConference[ASPLOS '21]{ASPLOS '21: ACM Symposium on Architectural Support
-for Programming Languages and Operating Systems}{April 19--23, 2021}{Virtual}
-\acmBooktitle{ASPLOS '21: ACM Symposium on Architectural Support
-for Programming Languages and Operating Systems,
-April 19--23, 2021, Virtual}
-% \acmPrice{15.00}
-% \acmISBN{978-1-4503-XXXX-X/18/06}
-
 
 %%
 %% Submission ID.
@@ -124,6 +104,20 @@ April 19--23, 2021, Virtual}
 %\cutforspacetrue
 
 \input{defs}
+
+%%% The following is specific to ASPLOS '21 and the paper
+%%% 'Corundum: Statically-Enforced Persistent Memory Safety'
+%%% by Morteza Hoseinzadeh and Steven Swanson.
+%%%
+\setcopyright{rightsretained}
+\acmPrice{}
+\acmDOI{10.1145/3445814.3446710}
+\acmYear{2021}
+\copyrightyear{2021}
+\acmSubmissionID{asplos21main-p171-p}
+\acmISBN{978-1-4503-8317-2/21/04}
+\acmConference[ASPLOS '21]{Proceedings of the 26th ACM International Conference on Architectural Support for Programming Languages and Operating Systems}{April 19--23, 2021}{Virtual, USA}
+\acmBooktitle{Proceedings of the 26th ACM International Conference on Architectural Support for Programming Languages and Operating Systems (ASPLOS '21), April 19--23, 2021, Virtual, USA}
 
 %%
 %% end of the preamble, start of the body of the document source.
