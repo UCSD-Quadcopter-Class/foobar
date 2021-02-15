@@ -7,11 +7,11 @@ therefore, eliminates memory management, pointers safety, and logging bugs and
 avoids the attendant costs of testing, debugging, fixing, and recovering from
 them.  It accomplishes this using Rust's type system to carefully control when
 the program can modify persistent and volatile state and when and where mutable
-references to persistent state can exist.  Our experience shows that \this{}
+references to persistent state can exist.  Our experience shows that \this{} is
 relatively easy to use and our measurements show that \this{}'s performance is
-comparable with several other PM libraries, or better in most cases.
+comparable with (or better than) existing PM libraries.
 
 \section*{Acknowledgement}
 
-This work was supported in part by Semiconductor Research Corporation (SRC),
-and also was partially supported by NFS award 1629395.
+This work was supported in part by Semiconductor Research Corporation (SRC)
+and by NFS award 1629395.

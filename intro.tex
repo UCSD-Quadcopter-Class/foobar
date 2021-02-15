@@ -54,7 +54,7 @@ allocation errors.  Further, the performance of the resulting machine code is
 comperable with that of compiled C or C++.  In addition to these built-in
 static checks, Rust also provides facilities that make it easy (and idiomatic)
 to create new types of smart pointers that integrate cleanly with the rest of
-the language.  Its type systems also make data modification explicit and easy to control.
+the language.  Its type system also make data modification explicit and easy to control.
 
 We have leveraged Rust's abilities to create \this{}, a library (or ``crate''
 in Rust parlance) that lets programmers build persistent data structures.
@@ -62,7 +62,7 @@ in Rust parlance) that lets programmers build persistent data structures.
 persistent memory pools) and a persistent software transactional memory
 interface to provide atomic updates to persistent data.
 
-Uniquely, \this{} uses (mostly) static checking to enforce several key PM
+Uniquely, \this{} uses static checking (in almost all cases) to enforce key PM
 programming invariants:
 
 \begin{itemize}

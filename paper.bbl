@@ -2,7 +2,7 @@
 %%% Do NOT edit. File created by BibTeX with style
 %%% ACM-Reference-Format-Journals [18-Jan-2012].
 
-\begin{thebibliography}{39}
+\begin{thebibliography}{40}
 
 %%% ====================================================================
 %%% NOTE TO THE USER: you can override these defaults by providing
@@ -291,6 +291,21 @@
 \newblock
 \newblock
 \shownote{\url{https://doc.rust-lang.org/book/}.}
+
+
+\bibitem[\protect\citeauthoryear{Knowlton}{Knowlton}{1965}]%
+        {buddy}
+\bibfield{author}{\bibinfo{person}{Kenneth~C. Knowlton}.}
+  \bibinfo{year}{1965}\natexlab{}.
+\newblock \showarticletitle{A Fast Storage Allocator}.
+\newblock \bibinfo{journal}{\emph{Commun. ACM}} \bibinfo{volume}{8},
+  \bibinfo{number}{10} (\bibinfo{date}{Oct.} \bibinfo{year}{1965}),
+  \bibinfo{pages}{623–624}.
+\newblock
+\showISSN{0001-0782}
+\urldef\tempurl%
+\url{https://doi.org/10.1145/365628.365655}
+\showDOI{\tempurl}
 
 
 \bibitem[\protect\citeauthoryear{Lantz, Dulloor, Kumar, Sankaran, and

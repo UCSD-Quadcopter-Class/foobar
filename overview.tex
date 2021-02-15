@@ -159,7 +159,7 @@ can modify volatile state but cannot modify persistent state.
 
 Critically, \this{} limits the kinds of variables that can cross transaction
 boundaries, and this allows for careful reasoning about the invariants that
-hold at the boundaries.  For instance, \this{} guarantees that leaks are not
+hold at the boundaries.  For instance, \this{} guarantees that leaks in acyclic structures are not
 possible by showing that they do not exist at transaction boundaries.
 
 \subsection{Assumptions}
@@ -217,8 +217,7 @@ therefore, the number of simultaneously open pools) is fixed at compile time.
 \csym{PSafe} (like all of \this{}'s auto traits) is declared
 \csym{unsafe}, so programmers should not explicitly label types as \csym{PSafe}.
 
-Reference and raw pointers, and types that refer to state external to the program (e.g., file handles) are \csym{!PSafe}. Having a \csym{!PSafe} field (as in \csym{Box}, \csym{Rc}, \csym{Arc},
-\csym{Mutex}, etc.), also, makes a type \csym{!PSafe}.
+Reference and raw pointers, and types that refer to state external to the program (e.g., file handles) are \csym{!PSafe}. Having a \csym{!PSafe} field also makes a type \csym{!PSafe}. As a result, \csym{Box}, \csym{Rc}, \csym{Arc}, \csym{Mutex}, and the other types in Rust containing raw pointers are \csym{!PSafe}.
 
 \input{example}
 
@@ -229,7 +228,7 @@ memory allocations and modifications of the root pointer.
 
 Programs create transactions by passing an anonymous function (i.e., a lambda) to \cfunc{P::transaction} (\reflr{ln:tx}{ln:txend} of \reflst{lst:example}).
 The lambda takes a single
-argument, \csym{j}, which will be reference to a \emph{journal object} that holds information about the current transaction.  Variable
+argument, \csym{j}, which is a reference to a \emph{journal object} that holds information about the current transaction.  Variable
 \csym{j} is of type \csym{Journal<P>}, so it is bound to pool \csym{P}.  
 
 The lambda can capture values from the transaction's lexical scope (e.g., \csym{head} in \reflst{lst:example}), allowing
@@ -384,7 +383,7 @@ P1::transaction(|j1| {
   The constructor for the \csym{Journal<P>} is unsafe, so the program cannot
   safely create one.  Therefore, the only journal objects that might be
   available are the ones passed to a transaction as an argument.
-  \csym{Journal<P>} is declared to be stranded, so it cannot escape the transaction.
+  \csym{Journal<P>} is stranded, so it cannot escape the transaction.
   
   \cutforspace{Finally, a nested transaction cannot capture the journal object from the outer
     transaction, because \csym{Journal<P>} is \csym{!TxInSafe}.  }
@@ -488,8 +487,8 @@ also inherently unsafe.  They are also disallowed: Pools only contain
 \csym{PSafe} objects (\nameref{goal:only-persistent-objects}) and pointers to
 volatile memory are \csym{!PSafe}. 
 
-\boldparagraph{Pointers from volatile memory into a pool} The object a
-\csym{VWeak} refers to can disappear if the last \csym{Parc} refering to the
+\boldparagraph{Pointers from volatile memory into a pool} VWeak is the only way store a pointer to PMEM in volatile memory. The object a
+\csym{VWeak} refers to can disappear if the last \csym{Prc}/\csym{Parc} refering to the
 object goes out of scope, deallocating the memory. In this case,
 \cfunc{promote} will return \csym{None}, which is safe in Rust.
 
@@ -499,11 +498,11 @@ prevent this.
 
 First, accessing a pointer to a closed pool from within a transaction is not
 possible, since \cfunc{P::transaction} will \cfunc{panic!} if \csym{P} is
-closed.
+closed, and a pool will not close while a transaction is in progress.
 
-Second, consider a reference (other than \csym{VMWeak}, \csym{A}, that exists
-outside a transaction.  Rust's borrow checker requires that chain of in-scope
-references exists from the root to \csym{A}.  This includes the root pointer,
+Second, consider a reference (other than a \csym{VMWeak}), \csym{A}, that exists
+outside a transaction.  Rust's borrow checker requires that a chain of in-scope
+references exists from the root of the pool to \csym{A}.  This includes the root pointer,
 whose liveness prevents \csym{P} from closing.
 
 Finally, \csym{VWeak} pointers from volatile memory into the pool can exist
@@ -604,7 +603,7 @@ cannot be called outside a transaction (\nameref{tx-journal-only}).}
 
 \begin{goaltrue}{goal:no-races}
   Rust prevents data races and unsynchronized access using the mutability
-  invariant, the \csym{Mutex} type, marker types to restrict data movement between threads.
+  invariant, the \csym{Mutex} type, and marker types to restrict data movement between threads.
   \This{} takes the same approach by providing \csym{PMutex}, and achieves the
   same safety guarantees.
   
@@ -644,9 +643,8 @@ allocations and deallocation that occur in a transaction.
 also support weak references to allow for cyclic data structures.
 
 Like Rust's \csym{Rc} and \csym{Arc},  \csym{Prc} and \csym{Parc} provide
-a cloning method, \cfunc{pclone}, to create a new strong reference to the shared
-data and increment the reference count.  The reference counts are persistent, so
-modifying them requires \cfunc{pclone} to take a journal object.
+a method, \cfunc{pclone}, to create a new reference to the shared
+data and increment the reference count.  The reference counts are persistent and must be logged, so \cfunc{pclone} takes a journal object argument.
 
 \boldparagraph{Allocation} The only way to allocate persistent memory is by
 creating \csym{Pbox}, \csym{Prc}, or \csym{Parc} instances.  Since the
@@ -812,9 +810,8 @@ Rust's \cfunc{thread::spawn} function executes its argument\linebreak
 (a lambda) in a new thread.
 In the code, \csym{a} is an orphan but it moves to the thread's scope.
 The thread's body is outside the transaction, so our invariant does not hold.
-To restore the invariant, additional to \csym{Prc}, \this{} makes \csym{Pbox}
-and \csym{Parc} \csym{!Send}, too.  This prevents their capture by a thread body
-or moving to the thread's scope.
+To prevent this, \this{} makes \csym{Pbox}
+and \csym{Parc} \csym{!Send} to prevent their  capture by or transmission to another thread.  \csym{VWeak} remains Send, so it can be used to transmit persistent state between threads.
 
 \ignore{\nameref{goal:no-memory-leaks} only holds for acyclic data structures,
 since \csym{Parc} and \csym{Prc} use simple reference counts and cannot detect
@@ -894,8 +891,7 @@ and place some limits on what it can achieve.
 \boldparagraph{Uncaught Bugs} \This{} aims to protect the programmer from
 errors that violate the basic rules of persistent memory programming as
 enshrined in its design goals.  However, \this{} does not attempt to protect
-against higher level errors (e.g., whether a persistent hash map will function
-correctly).
+against higher level errors (e.g., whether the algorithm in our example correctly appends to a linked list).
 
 \boldparagraph{Dynamic Checks} In some cases, \this{} provides dynamic, rather than static, checks.
 In these cases we could not find a way to enforce them with Rust's
@@ -931,14 +927,13 @@ calling it.
 
 \boldparagraph{Deadlock} \This{} does not prevent deadlock despite several
 demonstrations that this is possible in a TM
-system~\cite{convoider,grace,tm2c,stmlock}.  We did omitted deadlock detection and
+system~\cite{convoider,grace,tm2c,stmlock}.  We omitted deadlock detection and
 recovery for simplicity and to align \csym{PMutex}'s behavior with \csym{Mutex}'s.
   
 \boldparagraph{Log-Free Programming} \This{} is more restrictive than most
 existing PM libraries.  For instance, many high-performance PM data structures
 are log-free and use carefully-ordered updates to ensure crash consistency.
-More permissive libraries allow this, but such code would not compile under
-safe \this{}.  Ideally, \this{} could grow to include
+More permissive libraries allow this, but such code would not compile under \this{}.  Ideally, \this{} could grow to include
 \csym{unsafe} facilities that allow for log-free programming without completely
 sacrificing its safety properties.
 
@@ -971,15 +966,14 @@ For instance, \this{} is unique among PMEM libraries in separating code that
 modifies persistent state from code that modifies volatile state.  Our
 correctness argument relies on this property in several places, but it is not
 clear whether this is a fundamentally good idea for PMEM programming or simply
-something that was helpful in ensuring safety and implementable in Rust.
+something that was helpful in ensuring safety and was implementable in Rust.
 
 It would be instructive to try to replicate \this{}'s functionality in another
 language.  C++ seems like the most likely mainstream candidate, since it has a flexible
-type system.  Simplying recreating \this{}'s approach in C++ would require
+type system.  Recreating \this{}'s approach in C++ would require
 first recreating the Rust memory safety guarantees that \this{} relies on.
 This seems challenging.  More illuminating would be to try to achieve the same
-goals using a more idiomatic C++ approach.  A comparison between the resulting
-system and \this{} would be revealing.
+goals using a more idiomatic C++ approach.
 
 \ignore{
 

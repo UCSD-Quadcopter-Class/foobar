@@ -19,7 +19,7 @@ reports them, ``D'' (``Dynamic'') means that the system will identify the proble
 runtime and exit appropriately, % \steve{not always exits: V-to-NV returns a Result which without panic. If you unwrap the Result, then it panics.}
 and ``M'' (``Manual'') means that the system does not detect
 violations, so they will manifest as a crash, data corruption, or
-other error.  For \nameref{goal:no-memory-leaks}, ``GC'' means the system
+other error.  For \hyperref[goal:no-memory-leaks]{No-Leaks}, ``GC'' means the system
 provides garbage collection, and ``RC'' means that reference counting is used.
 
 The table shows that \this{} enforces almost all its invariants at compile
@@ -246,15 +246,19 @@ To measure the performance in both \this{} and PMDK, we use the linux provided t
 
 \subsubsection{Basic Operation Performance}
 
-\reftab{tab:microbench} reports the latency of basic operations along with the standard deviation measured on the platform described in \refsec{sec:res:platform}. To evaluate the impact of storage technology, we measure these operations on both Optane DC persistent memory and DRAM. The standard deviation (STD) shows how much we should expect the measured latency can vary. Some of the items have a very small average latency, therefore we measure a batch of operations and calculate the average. These items have no STD values.
+\reftab{tab:microbench} reports the latency of basic operations along with the standard deviation measured on the platform described in \refsec{sec:res:platform}. To evaluate the impact of storage technology, we measure these operations on both Optane DC persistent memory and DRAM. ``STD'' is the standard deviation. Some of the items have a very small average latency, so we measure a batch of operations and calculate the average. This prevents us from calculating the standard deviation for those operations.
 
-To measure dereferencing operation latency, we use a \csym{Pbox<i32>}. Dereferencing a persistent pointer involves address translation and memory indirection. The Rust compiler uses CPU registers to cache the base and offset addresses. As a result, the dereferencing operation performs less than 1~ns, for both read and write. However, writing for the first time requires taking a log of data which takes around 470~ns.
+To measure dereferencing operations, we use a \csym{Pbox<i32>}. Dereferencing a persistent pointer involves address translation and memory indirection. The Rust compiler uses CPU registers to cache the base and offset addresses. As a result, the dereferencing operation performs less than 1~ns, for both read and write. However, writing for the first time requires logging which takes around 470~ns.
 
-For memory allocation, \This{} uses buddy-blocks algorithm which performs small allocations by splitting large free blocks, and merge small free adjacent blocks on deallocation to yield larger free blocks. Therefore, small free blocks are more available than large free blocks. For example, a free block of size 8192~B can be split into 1024 small free blocks of 8~B, or only 2 large block of size 4~kB. \reftab{tab:microbench} confirms this fact. In contrast to allocation, freeing memory takes almost constant time, because the merging happens fewer most of the time due to unavailability of the buddy block. The failure-atomic instantiation operation (AtomicInit) allocates new memory and fill it with a given value atomically using low-level redo logging in the allocator. This operation is as fast as the allocation because the allocation is the only major part of it.
+For memory allocation, \This{} uses a buddy system~\cite{buddy} which performs small allocations by splitting large free blocks, and coalescing small, free adjacent blocks on deallocation to yield larger free blocks. Therefore, small free blocks are more available than large free blocks. For example, a free block of size 8192~B can be split into 1024 small free blocks of 8~B, or only 2 large block of size 4~kB. \reftab{tab:microbench} confirms this fact. In contrast to allocation, freeing memory takes almost constant time, because merging is rare.
 
-\This{} keeps a journal object in the PM per thread with at list one page of 64 log slots. Therefore, running an empty transaction (TxNop) does not write to the PM. The roughly similar latency in PM and DRAM in \reftab{tab:microbench} confirms this. DataLog shows the latency of taking an undo log for a data with 8~B, 2~kB, and 32~kB sizes. It requires allocating memory and copying data to the log location. Therefore, the larger the data, the slower the operation, due to the allocation process. However, creating a DropLog which only keeps the information of the allocation has a fixed size, and takes constant time.
+The failure-atomic instantiation operation (AtomicInit) allocates new memory and fills it with a given value atomically using low-level redo logging in the allocator. This operation is as fast as the allocation because the allocation is the only major part of it.
 
-The \cfunc{pclone} method in \csym{Pbox} creates a new instance of \csym{Pbox} by allocating and copying data to a new location. Therefore, the latency of \csym{Pbox::pclone} is the aggregation of PM allocation and \memcpy{}. However, \csym{Prc} and \csym{Parc} do not allocate memory. They only update their reference counters transactionally. \csym{Parc} takes a log every time it counts to provide crash-consistent atomic counters which explains its longer latency compared with \csym{Prc}. The \cfunc{downgrade} and \cfunc{upgrade} functions also transactionally update the counters and we can use the same explanation as for \cfunc{pclone}. Although the \cfunc{demote} function use similar mechanism\linebreak as \cfunc{downgrade} to create volatile weak pointer, they additionally update a reference list in \csym{Prc}/\csym{Parc} which makes them slightly slower. However, the latency of \cfunc{promote} is similar to \cfunc{upgrade} because they perform the same operation.
+\This{} preallocates a per-thread journal object, so running an empty transaction (TxNop) does not write to the PM.
+
+DataLog shows the latency of taking an undo log for a data with 8~B, 2~kB, and 32~kB sizes. It requires allocating memory and copying data to the log location. Therefore, the larger the data, the slower the operation, due to the allocation process. However, creating a DropLog which only keeps the information of the allocation, and takes constant time.
+
+\cfunc{Pbox::pclone} creates a new instance of \csym{Pbox} by allocating and copying data to a new location. Therefore, the latency of \csym{Pbox::pclone} combines PM allocation and \memcpy{}. However, \csym{Prc} and \csym{Parc} do not allocate memory. They only update their reference counters transactionally. \csym{Parc} takes a log every time it increments or decrements to provide crash-consistent atomic counters which explains its longer latency compared with \csym{Prc}. The \cfunc{downgrade} and \cfunc{upgrade} functions also transactionally update the counters and we can use the same explanation as for \cfunc{pclone}. Although the \cfunc{demote} function use similar mechanism\linebreak as \cfunc{downgrade} to create volatile weak pointer, they additionally update a reference list in \csym{Prc}/\csym{Parc} which makes them slightly slower. However, the latency of \cfunc{promote} is similar to \cfunc{upgrade} because they perform the same operation.
 
 \subsubsection{Workloads}
 \label{sec:res:perf:workload}
@@ -289,8 +293,7 @@ The \cfunc{pclone} method in \csym{Pbox} creates a new instance of \csym{Pbox} b
 
 \reffig{fig:perf} shows the results of our experiments comparing \this{}'s performance with PMDK, Atlas, Mnemosyne, and go-pmem. 
 \This{}'s performance is almost as fast as other libraries,
-and sometimes significantly faster. Although in some cases it is not the fastest,
-we should note that it is the only library that provides the highest level of safety.
+and sometimes significantly faster.
 
 \begin{figure}
     \begin{center}
@@ -299,10 +302,11 @@ we should note that it is the only library that provides the highest level of sa
     \caption{\label{fig:perf} Performance comparison between \this{}, PMDK, Atlas, Mnemosyne, and go-pmem}
 \end{figure}
 
-Wordcount measures scalability.  \This{} provides
+The Wordcount benchmark measures scalability.  It collects character strings from multiple text, and measures the frequency of each word in a set of threads (consumers).
+\This{} provides
 a separate allocator and journal object for every thread to allow concurrency. %concurrent allocation.
-\reffig{fig:scal} confirms that the performance scales with thread count.
-When the allocator cannot find a free block in its free lists, it deliberates the task to another allocator which is protected by a lock (not occurred in this experiment).
+\reffig{fig:scal} shows that the performance scales with thread count.
+Since Wordcount is embarrassingly parallel, this shows that Corundum does not limit scalability.
 
 \begin{figure}
     \begin{center}
