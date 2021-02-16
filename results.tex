@@ -235,9 +235,9 @@ To measure the performance in both \this{} and PMDK, we use the linux provided t
 \begin{table}
   \center
   \footnotesize
-  \caption{\textbf{\This's basic operation latency and maximum latency} for durability and safety support measured on Intel's Optane DC and Battery-Backed DRAM, with 50K operations per test.}
+  \caption{\textbf{\This's basic operation latency} for durability and safety support measured on Intel's Optane DC and Battery-Backed DRAM, with 50K operations per test.}
   \label{tab:microbench}
-  \begin{tabular}{|l||l|l||l|l|}\hline
+  \begin{tabular}{|l|c|c|}\hline
     \input{microbench.table}
   \end{tabular}
   % \vspace{-0.5cm}
@@ -245,7 +245,8 @@ To measure the performance in both \this{} and PMDK, we use the linux provided t
 
 \subsubsection{Basic Operation Performance}
 
-\reftab{tab:microbench} reports the latency of basic operations along with the maximum latency of the fastest 99\% of the operations measured on the platform described in \refsec{sec:res:platform}. To evaluate the impact of storage technology, we measure these operations on both Optane DC persistent memory and DRAM. Some of the items have a very small average latency, so we measure a batch of operations and calculate the average. This prevents us from calculating the maximum latency (of 99\%) for those operations.
+\reftab{tab:microbench} reports the latency of basic operations measured on the platform described in \refsec{sec:res:platform}. To evaluate the impact of storage technology, we measure these operations on both Optane DC persistent memory and DRAM. 
+% Some of the items have a very small average latency, so we measure a batch of operations and calculate the average. This prevents us from calculating the maximum latency (of 99\%) for those operations.
 
 To measure dereferencing operations, we use a \csym{Pbox<i32>}. Dereferencing a persistent pointer involves address translation and memory indirection. The Rust compiler tends to keep the base and offsets for address translation in registers. As a result, the dereferencing operation performs less than 1~ns, for both read and write. However, writing for the first time requires logging which takes around 470~ns (\csym{DerefMut}, the 1st time).
 
