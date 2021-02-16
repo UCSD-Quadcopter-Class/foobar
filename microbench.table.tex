@@ -1,35 +1,35 @@
 %&How does it ensure that only persistent data types reside in persistent memory?&How does it prevent (or ensure the validity of) pointers from one NV region/pool to another region/pool?&How does it prevent pointers from an NV region into DRAM?&How does it ensure the safety of pointers from DRAM to NV?  For example, if an NV object's reference count goes to zero and it is deallocated or the persistent region is unmapped, how do you prevent dereferences to the resulting invalid pointers in volatile memory?&How does it prevent unsynchronized access to shared persistent data?&How does it prevent unlogged writes to persistent data?&How does it prevent modifications to persistent data outside of transactions?&How does it prevent persistent memory leaks?
 Operation&\multicolumn{2}{c||}{Optane DC}&\multicolumn{2}{c|}{DRAM}\\\cline{2-5}
-                                   &Mean (ns)&STD (ns)&Mean (ns)&STD (ns)\\\hline\hline
-\csym{Deref}                       &0.9	&	-	&	1.0	&	-	\\\hline
-\csym{DerefMut} (the 1st time)     &467	&	499	&	221	&	99	\\\hline
-\csym{DerefMut} (not the 1st time) &0.4	&	-	&	0.4	&	-	\\\hline
-\csym{Alloc} (8~B)                 &537	&	652	&	226	&	133	\\\hline
-\csym{Alloc} (256~B)               &594	&	711	&	241	&	179	\\\hline
-\csym{Alloc} (4~kB)                &1626	&	37467	&	1885	&	2456	\\\hline
-\csym{Dealloc} (8~B)               &519	&	682	&	220	&	126	\\\hline
-\csym{Dealloc} (256~B)             &585	&	691	&	232	&	133	\\\hline
-\csym{Dealloc} (4~kB)              &651	&	690	&	238	&	133	\\\hline
-\csym{Pbox:AtomicInit} (8~B)       &748	&	992	&	386	&	478	\\\hline
-\csym{Prc:AtomicInit} (8~B)        &2022	&	2987	&	1109	&	2695	\\\hline
-\csym{ParcAtomicInit} (8~B)        &3173	&	9239	&	2124	&	7795	\\\hline
-\csym{TxNop}                       &209	&	120	&	232	&	101	\\\hline
-\csym{DataLog} (8~B)               &591	&	656	&	245	&	123	\\\hline
-\csym{DataLog} (2~kB)              &943	&	726	&	438	&	280	\\\hline
-\csym{DataLog} (32~kB)             &2516	&	722	&	1469	&	844	\\\hline
-\csym{DropLog} (8~B)               &39	&	99	&	32	&	41	\\\hline
-\csym{DropLog} (32~kB)             &31	&	47	&	32	&	28	\\\hline
-\csym{Pbox::pclone} (8~B)          &810	&	1989	&	325	&	156	\\\hline
-\csym{Prc::pclone}                 &31	&	-	&	13	&	-	\\\hline
-\csym{Parc::pclone}                &415	&	291	&	184	&	67	\\\hline
-\csym{Prc::downgrade}              &6	&	-	&	6	&	-	\\\hline
-\csym{Parc::downgrade}             &418	&	283	&	187	&	62	\\\hline
-\csym{Prc::PWeak:upgrade}          &9	&	-	&	9	&	-	\\\hline
-\csym{Parc::PWeak::upgrade}        &337	&	215	&	180	&	50	\\\hline
-\csym{Prc::demote}                 &42	&	-	&	43	&	-	\\\hline
-\csym{Parc::demote}                &75	&	179	&	76	&	188	\\\hline
-\csym{Prc::VWeak::promote}         &12	&	-	&	13	&	-	\\\hline
-\csym{Parc::VWeak::promote}        &419	&	284	&	187	&	58	\\\hline
+                                   &Avg (ns)&Max (99\%)&Avg (ns)&Max (99\%)\\\hline\hline
+\csym{Deref}                       &0.9	&	-	    &	1.0	&	-	\\\hline
+\csym{DerefMut} (the 1st time)     &467	&	1467	&	235	&	621	\\\hline
+\csym{DerefMut} (not the 1st time) &0.4	&	-	    &	0.4	&	-	\\\hline
+\csym{Alloc} (8~B)                 &734	&	4379	&	241	&	903	\\\hline
+\csym{Alloc} (256~B)               &706	&	4186	&	264	&	1022	\\\hline
+\csym{Alloc} (4~kB)                &1685&	6273	&	1907&	11102	\\\hline
+\csym{Dealloc} (8~B)               &632	&	5219	&	384	&	1051	\\\hline
+\csym{Dealloc} (256~B)             &598	&	4747	&	249	&	825	\\\hline
+\csym{Dealloc} (4~kB)              &675	&	4491	&	248	&	899	\\\hline
+\csym{Pbox:AtomicInit} (8~B)       &822	&	5408	&	416	&	1170	\\\hline
+\csym{Prc:AtomicInit} (8~B)        &2089&	30625	&	1210&	21270	\\\hline
+\csym{ParcAtomicInit} (8~B)        &3508&	80415	&	2304&	61423	\\\hline
+\csym{TxNop}                       &198	&	218	    &	198	&	218	\\\hline
+\csym{DataLog} (8~B)               &574	&	3768	&	253	&	876	\\\hline
+\csym{DataLog} (1~kB)              &1070&	4628	&	500	&	2057	\\\hline
+\csym{DataLog} (4~kB)              &2463&	6273	&	1510&	5541	\\\hline
+\csym{DropLog} (8~B)               &29	&	76	    &	28	&	85	\\\hline
+\csym{DropLog} (32~kB)             &28	&	46	    &	28	&	64	\\\hline
+\csym{Pbox::pclone} (8~B)          &698	&	1989	&	314	&	696	\\\hline
+\csym{Prc::pclone}                 &13	&	-	    &	8	&	-	\\\hline
+\csym{Parc::pclone}                &333	&	1051	&	170	&	434	\\\hline
+\csym{Prc::downgrade}              &6	&	-	    &	6	&	-	\\\hline
+\csym{Parc::downgrade}             &335	&	1053	&	174	&	444	\\\hline
+\csym{Prc::PWeak:upgrade}          &9	&	-	    &	9	&	-	\\\hline
+\csym{Parc::PWeak::upgrade}        &321	&	1053	&	175	&	436	\\\hline
+\csym{Prc::demote}                 &42	&	-	    &	43	&	-	\\\hline
+\csym{Parc::demote}                &75	&	160	    &	75	&	166	\\\hline
+\csym{Prc::VWeak::promote}         &12	&	-	    &	13	&	-	\\\hline
+\csym{Parc::VWeak::promote}        &352	&	1101	&	175	&	451	\\\hline
  
  
  

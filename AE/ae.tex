@@ -224,7 +224,7 @@ $ sudo mkdir /mnt/pmem0
 $ sudo mount -t tmpfs /dev/pmem0 /mnt/pmem0
 \end{verbatim}
 
-Many of the latency components are originated in Hardware, such as using \verb+CL_FLUSHOPT+ instead of \verb+CL_FLUSH+ when available. Corundum does not automatically detect these capabilities. However, it comes with some builtin features. In `\verb+Cargo.toml+', under the `features' section, update \verb+default=[]+ or use `\verb+--feature="..."+' argument as required. For example, if the system supports \verb+CLWB+ instructions, you may force Corundum to use that by changing the default features to this:
+Many of the latency components are originated in Hardware, such as using \verb+CL_FLUSHOPT+ instead of \verb+CL_FLUSH+ when available. Corundum does not automatically detect these capabilities. However, it comes with some builtin features. In `\verb+Cargo.toml+', under the `features' section, update \verb+default=[]+ or use `\verb+--features="..."+' argument as required. For example, if the system supports \verb+CLWB+ instructions, you may force Corundum to use that by changing the default features to this:
 
 \begin{center}
   \verb+default = ["use_clwb"]+
