@@ -32,7 +32,6 @@ less safe.  A \this{} programmer could use similar techniques to improve
 performance with \csym{unsafe} blocks.
 
 \begin{table}
-  \footnotesize
   \center
   \caption{Adding persistence to data structures with \this{} requires fewer
     changes (measured in lines of code) than PMDK.}
@@ -218,7 +217,6 @@ To measure the performance in both \this{} and PMDK, we use the linux provided t
 
 \begin{table}
     \center
-    \footnotesize
     \caption{Microbenchmarks. The first three are used to compare the performance of \this{} with PMDK. Wordcount measures \this{}'s scalability with thread count.}
     \label{tab:perf:wrkld}
     \begin{tabular}{|p{0.5in}|p{2.5in}|}
@@ -234,7 +232,6 @@ To measure the performance in both \this{} and PMDK, we use the linux provided t
 
 \begin{table}
   \center
-  \footnotesize
   \caption{\textbf{\This's basic operation latency} for durability and safety support measured on Intel's Optane DC and Battery-Backed DRAM, with 50K operations per test.}
   \label{tab:microbench}
   \begin{tabular}{|l|c|c|}\hline
